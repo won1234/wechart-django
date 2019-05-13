@@ -1,0 +1,56 @@
+{% extends "mall/base.html" %}
+{% load static %}
+
+{% block title %}
+Your shopping cart
+{% endblock %}
+
+{% block content %}
+<h1>你的购物车</h1>
+<table class="cart">
+    <thead>
+    <tr>
+        <th>图片</th>
+        <th>产品</th>
+        <th>数量</th>
+        <th>移除</th>
+        <th>单价</th>
+        <th>总价</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in cart %}
+    {% with product=item.product %}
+    <tr>
+        <td>
+            <a href="{{ product.get_absolute_url }}">
+                <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}">
+            </a>
+        </td>
+        <td>{{ product.name }}</td>
+        <!--  更新产品数量-->
+        <td>
+            <form action="{% url 'cart:cart_update_quantity' product.id %}" method="post">
+                {% csrf_token %}
+                {{ item.update_quantity_form.quantity }}
+                <input type="submit" value="更新">
+            </form>
+        </td>
+        <td><a href="{% url 'cart:cart_remove' product.id %}">删除</a></td>
+        <td class="num">￥{{ item.price }}</td>
+        <td class="num">￥{{ item.total_price }}</td>
+    </tr>
+    {% endwith %}
+    {% endfor %}
+    <tr class="total">
+        <td>总计</td>
+        <td colspan="4"></td>
+        <td class="num">￥{{ cart.get_total_price }}</td>
+    </tr>
+    </tbody>
+</table>
+<p class="text-right">
+    <a href="{% url 'mall:product_list' %}" class="button light">继续购物</a>
+    <a href="{% url 'orders:order_create' %}" class="button">结算</a>
+</p>
+{% endblock %}
