@@ -1,11 +1,11 @@
 from django.db import models
 from mall.models import Product
-from django.contrib.auth.models import User
+from login.models import Profile
 
 
 # 订单数据
 class Order(models.Model):
-    user = models.ForeignKey(User, related_name='items', null=True,
+    user = models.ForeignKey(Profile, related_name='items', null=True,
                              on_delete=models.SET_NULL, verbose_name='用户')
     # first_name = models.CharField(max_length=50)
     # last_name = models.CharField(max_length=50)
@@ -16,10 +16,13 @@ class Order(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     paid = models.BooleanField(default=False)  # 区分支付和未支付
+    send = models.BooleanField(default=False, verbose_name='是否发货')  # 是否发货
     total_cost = models.CharField(max_length=20)    # 订单金额
 
     class Meta:
         ordering = ('-created',)   # 按创建时间倒叙排列
+        verbose_name = 'Orders'
+        verbose_name_plural = '订单'
 
     def __str__(self):
         return '订单号 {}'.format(self.id)

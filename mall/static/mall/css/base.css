@@ -24,7 +24,7 @@ a.button, input[type="submit"] {
     background:#5993bb;
     border-radius:4px;
     padding:10px 20px;
-    font-size:14px;
+    font-size:28px;
     border:0;
 }
 
@@ -49,7 +49,7 @@ table {
 
 table th, table td {
     text-align:left;
-    font-size:14px;
+    font-size:28px;
     padding:10px;
     margin:0;
 }
@@ -81,7 +81,7 @@ tbody td.num {
 }
 
 td input[type="submit"] {
-    font-size:12px;
+    font-size:24px;
     padding:4px 10px;
 }
 
@@ -91,13 +91,13 @@ form p label, form p input {
 }
 
 form p label {
-    font-size:14px;
+    font-size:28px;
     padding-bottom:4px;
 }
 
 form p input {
     width:300px;
-    font-size:13px;
+    font-size:28px;
     margin-bottom:10px;
     padding:10px 12px;
     border:0;
@@ -110,14 +110,14 @@ ul.errorlist {
    float:left;
    color:#ff0000;
    clear:both;
-   font-size:13px;
+   font-size:26px;
    margin:0;
    padding:0;
 }
 
 #header {
     padding:10px 100px;
-    font-size:14px;
+    font-size:40px;
     background:#12c064;
     color:#fff;
     border-bottom:4px solid #1cdf78;
@@ -128,7 +128,7 @@ ul.errorlist {
     font-family: 'Muli', sans-serif;
     float:left;
     color:#f3f7cc;
-    font-size:20px;
+    font-size:50px;
     margin-right:10%;
 }
 
@@ -178,6 +178,7 @@ ul.errorlist {
 }
 
 #sidebar {
+    font-size:30px;
     width:220px;
     padding:30px 20px 0 0;
     float:left;
@@ -215,6 +216,7 @@ ul.errorlist {
 }
 
 .product-list .item {
+    font-size: 35px;
     width:25%;
     padding:10px 20px 10px 0;
     float:left;
@@ -271,7 +273,7 @@ ul.errorlist {
 .order-info ul li {
     margin:0;
     padding:0;
-    font-size:14px;
+    font-size:28px;
 }
 
 .order-info p {
@@ -290,7 +292,7 @@ ul.errorlist {
 .languages {
    float:right;
    padding-top:4px;
-   font-size:14px;
+   font-size:28px;
 }
 
 .languages ul {
@@ -303,7 +305,7 @@ ul.errorlist {
 .languages ul li {
     float:left;
     margin:0 0 0 10px;
-    font-size:14px;
+    font-size:28px;
 }
 
 .languages p {

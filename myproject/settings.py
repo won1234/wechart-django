@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
@@ -26,7 +25,6 @@ SECRET_KEY = '2-pwv_8=l8yi-+th0=%4t@(5y139#7n%vbq&u17xipf+iy(fae'
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1']
-
 
 # Application definition
 
@@ -42,6 +40,7 @@ INSTALLED_APPS = [
     'mall',
     'cart',
     'orders',
+    'Manager',
 ]
 
 MIDDLEWARE = [
@@ -75,7 +74,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
@@ -85,7 +83,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -105,7 +102,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
@@ -119,7 +115,6 @@ USE_L10N = True
 
 USE_TZ = False
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
@@ -128,4 +123,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 CART_SESSION_ID = 'cart'
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+SESSION_COOKIE_AGE = 60 * 30      # 会话持续时长 30分钟
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # True：关闭浏览器，则Cookie失效。
