@@ -20,14 +20,14 @@ def order_create(request):
     if request.method == 'POST':
         # 创建订单
         order = Order.objects.create(user=user_profile, total_cost=cart.get_total_price())  # 返回的是对象
-        for item in cart:
+        for item in cart:    # 取得购物车中的物品清单，写入数据库
             OrderItem.objects.create(order=order,
                                      product=item['product'],
                                      price=item['price'],
                                      quantity=item['quantity'])
         # 清空购物车
         cart.clear()
-        order_created.delay(order.id)  # 启动发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
+        order_created.delay(user_profile.id, order.id)  # 启动发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
         return render(request,
                       'orders/order/created.html',
                       {'order': order})
