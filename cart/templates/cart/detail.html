@@ -51,6 +51,8 @@ Your shopping cart
 </table>
 <p class="text-right">
     <a href="{% url 'mall:product_list' %}" class="button light">继续购物</a>
+    {% if cart.get_total_price %}
     <a href="{% url 'orders:order_create' %}" class="button">结算</a>
+    {% endif %}
 </p>
 {% endblock %}

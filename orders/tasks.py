@@ -5,50 +5,36 @@ from login.models import Profile
 
 # todo 获取用户信息，发给用户微信
 
-# 异步任务来发送消息邮件来让用户知道他们下单了。
-# task 装饰器来定义我们的 order_created 任务
-# @task
-# def order_created(order_id):
-#     """
-#     Task to send an e-mail notification when an order is
-#     successfully created.
-#     """
-#     order = Order.objects.get(id=order_id)
-#     subject = 'Order nr. {}'.format(order.id)
-#     message = 'Dear {},\n\nYou have successfully placed an order.\
-#                 Your order id is {}.'.format(order.first_name,
-#                                             order.id)
-#     # 我们使用 Django 提供的 send_mail() 函数来发送一封提示邮件给用户告诉他们下
-#     mail_sent = send_mail(subject,
-#                         message,
-#                         'admin@myshop.com',
-#                         [order.email])
-#     return mail_sent
-
-
 from .wechartAPI.api.src import sendmsg
 
 
 @task
-def order_created(order_id):
+def order_created(user_profile_id, order_id):
     """
     发送微信消息
     """
+    user_profile = Profile.objects.get(id=user_profile_id)
     order = Order.objects.get(id=order_id)
-    orderitems = OrderItem.objects.filter(order=order)
+    order_items = OrderItem.objects.filter(order=order)
+    first_name = user_profile.user.first_name
+    order_id = order.id
+    created_time = order.created.strftime("%Y-%m-%d %H:%M:%S")
+    order_detail_cost = ''
     order_detail = ''
-    for order_item in orderitems:
-        order_detail = order_detail + str(order_item.product.name) + ':' + str(order_item.quantity) + "件。共" + str(
+    for order_item in order_items:
+        order_detail_cost = order_detail_cost + str(order_item.product.name) + ':' + str(
+            order_item.quantity) + "件。共" + str(
             order_item.get_cost()) + "元\n"
-    message = '亲 {},你已经成功下单了。\n订单号{}，\n下单时间:\n {}，\n\n{}\n总金额{}元'.format(order.user.first_name, order.id,
-                                                                            order.created.strftime("%Y-%m-%d %H:%M:%S"),
-                                                                            order_detail,
-                                                                            order.total_cost)
-    # print(message)
-    # 我们使用 Django 提供的 send_mail() 函数来发送一封提示邮件给用户告诉他们下
-    # mail_sent = send_mail(subject,
-    #                     message,
-    #                     'admin@myshop.com',
-    #                     [order.email])
-    msg_sent = sendmsg.sendmsgbywechart(message)
+        order_detail = order_detail + str(order_item.product.name) + ':' + str(order_item.quantity) + "件。"
+    message_user = '亲 {},你已经成功下单了。\n订单号{}，\n下单时间:\n {}，\n\n{}\n总金额{}元'.format(first_name,
+                                                                              order_id,
+                                                                              created_time,
+                                                                              order_detail_cost,
+                                                                              order.total_cost)
+    message_tag = '{}\n订单号{}，\n下单时间:\n {}，\n\n{}'.format(first_name,
+                                                         order_id,
+                                                         created_time,
+                                                         order_detail)
+
+    msg_sent = sendmsg.sendmsgbywechart(user_profile, message_user, message_tag)
     return msg_sent

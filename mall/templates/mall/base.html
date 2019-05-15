@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>{% block title %}My shop{% endblock %}</title>
+    <title>{% block title %}shopping{% endblock %}</title>
     {% load staticfiles %}
     <link rel="stylesheet" href="{% static 'mall/css/base.css' %}">
 </head>
@@ -12,14 +12,13 @@
     <!--  判断用户是否登录了，只给通过认证（authentication）的用户显示站点菜单  -->
     {% if request.user.is_authenticated %}
     <ul class="menu">
-        <!--    section指当前页面 ,selected的class属性来使当前section在菜单中进行高亮显示   -->
-        <li {% ifequal section 'product_list' %}class="selected"{% endifequal %}>
+        <li {% if request.path|slice:"5" == '/mall' %}class="selected"{% endif %} >
         <a href="{% url 'mall:product_list' %}">商品</a>
         </li>
-        <li {% ifequal section "cart" %}class="selected"{% endifequal %}>
+        <li {% if request.path|slice:"5" == '/cart' %}class="selected"{% endif %}>
         <a href="{% url 'cart:cart_detail' %}">购物车</a>
         </li>
-        <li {% ifequal section "orders" %}class="selected"{% endifequal %}>
+        <li {% if request.path|slice:"6" == '/order' %}class="selected"{% endif %}>
         <a href="{% url 'orders:order_list' %}">我的订单</a>
         </li>
     </ul>
@@ -45,7 +44,7 @@
             ￥{{ cart.get_total_price }}
         </a>
         {% else %}
-        Your cart is empty.
+        您的购物车没有商品
         {% endif %}
         {% endwith %}
     </div>

@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block title %}{% endblock %}</title>
+    <meta charset="utf-8"/>
+    <title>{% block title %}订单{% endblock %}</title>
     {% load staticfiles %}
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'mall/css/base.css' %}">
 </head>
 <body>
 <div id="header">
     <span class="logo">越香包</span>
-    <!--  判断用户是否登录了，只给通过认证（authentication）的用户显示站点菜单  -->
     <span class="user">
                {% if request.user.is_authenticated %}
                 <!--  显示用户名  -->
@@ -16,7 +16,7 @@
                  <a href="{% url 'change_password' %}">修改密码 / </a>
                  <a href="{% url 'logout' %}">登出 / </a>
         {% else %}
-                 <a href="{% url 'login' %}">Log-in</a>
+                 <a href="{% url 'login' %}">登录</a>
         {% endif %}
     </span>
 </div>

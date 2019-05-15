@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, WechatTag
+from .models import Profile, WechatTag, Group2, NoPayDate
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -14,3 +14,17 @@ class WechatTagAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WechatTag, WechatTagAdmin)
+
+
+class Group2Admin(admin.ModelAdmin):
+    list_display = ['name', 'slug']
+
+
+admin.site.register(Group2, Group2Admin)
+
+
+class NoPayDateAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'days']
+
+
+admin.site.register(NoPayDate, NoPayDateAdmin)
