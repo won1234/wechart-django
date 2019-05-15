@@ -160,6 +160,20 @@ ul.errorlist {
     padding-top:4px;
 }
 
+#order_filter {
+    border-radius:4px;
+    padding:10px 20px;
+    font-size:28px;
+    border:1;
+}
+#order_filter select{
+    border-radius:4px;
+    margin-left:10px;
+    margin-right:10px;
+    font-size:28px;
+    border:1;
+}
+
 #subheader {
     background:#ececec;
     color:#444;

@@ -13,6 +13,7 @@
     <form action="{% url 'login' %}" method="post">
       {{ form.as_p }}
       {% csrf_token %}
+    <!--      跳转回之前的页面-->
       <input type="hidden" name="next" value="{{ next }}" />
       <p><input type="submit" value="登录"></p>
     </form>

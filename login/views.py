@@ -11,11 +11,14 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 def user_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)  # 提交的数据实例化表单（form）
+        # print(request.POST.get('next'), '---------------')
         if form.is_valid():  # 检查这个表单是否有效
             cd = form.cleaned_data  # 取得数据
             # 使用authenticate()方法通过数据库对这个用户进行认证（authentication）
             user = authenticate(username=cd['username'],
                                 password=cd['password'])
+            # next = request.POST.get('next')
+            # 如果超出支付时间，禁止登录
             if user is not None:  # 如果用户存在
                 today = date.today()  # 当前日期
                 user_pro = Profile.objects.get(user=user)  # 取得自定义的用户信息
@@ -49,17 +52,20 @@ def user_login(request):
                     return render(request, 'orders/order/order_list.html',
                                   {'orders': orders, 'order_items': order_items, 'no_pay_dic': no_pay_dic,
                                    'nologindate': nologindate.strftime('%Y-%m-%d')})
+
                 # 用户登录
                 if user.is_active:  # 如果用户的状态是active
                     login(request, user)  # 调用login()方法集合用户到会话（session）
-                    return redirect(reverse('mall:product_list'))  # 重定向网页，到mall
+                    next = request.POST.get('next')  # 取得next的值
+                    return redirect(next)  # 重定向网页
                 else:
                     return render(request, 'registrtion/login.html', {'form': form})
             else:
                 return render(request, 'registrtion/login.html', {'form': form})
     else:
+        next = request.GET.get('next')     # 取得URL accounts/login/?next=/mall/  next后面的值
         form = LoginForm()  # 为GET时，传入LoginForm为空
-    return render(request, 'registrtion/login.html', {'form': form})  # 无论如何最终都要返回
+    return render(request, 'registrtion/login.html', {'form': form, 'next': next})  # 无论如何最终都要返回
 
 
 def user_logout(request):

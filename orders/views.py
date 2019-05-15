@@ -37,7 +37,6 @@ def order_create(request):
                   {'cart': cart, 'user_profile': user_profile})
 
 
-# todo 展示已经购买我的订单
 def order_list(request):
     # 获取当前用户
     user_pro = Profile.objects.get(user=User.objects.get(username=request.user.username))  # 当前用户的扩展信息

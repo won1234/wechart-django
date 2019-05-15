@@ -14,6 +14,7 @@
             </li>
         {% for c in categories %}
             <li {% if category.slug == c.slug %}class="selected"{% endif %}>
+            <!--                某个品类的url-->
                 <a href="{{ c.get_absolute_url }}">{{ c.name }}</a>
             </li>
         {% endfor %}
