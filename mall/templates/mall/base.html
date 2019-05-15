@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>{% block title %}My shop{% endblock %}</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static 'mall/css/base.css' %}">
+</head>
+<body>
+<div id="header">
+    <span class="logo">越香包</span>
+    <!--  判断用户是否登录了，只给通过认证（authentication）的用户显示站点菜单  -->
+    {% if request.user.is_authenticated %}
+    <ul class="menu">
+        <!--    section指当前页面 ,selected的class属性来使当前section在菜单中进行高亮显示   -->
+        <li {% ifequal section 'product_list' %}class="selected"{% endifequal %}>
+        <a href="{% url 'mall:product_list' %}">商品</a>
+        </li>
+        <li {% ifequal section "cart" %}class="selected"{% endifequal %}>
+        <a href="{% url 'cart:cart_detail' %}">购物车</a>
+        </li>
+        <li {% ifequal section "orders" %}class="selected"{% endifequal %}>
+        <a href="{% url 'orders:order_list' %}">我的订单</a>
+        </li>
+    </ul>
+    {% endif %}
+    <span class="user">
+               {% if request.user.is_authenticated %}
+                <!--  显示用户名  -->
+                 {{ request.user.first_name }}/
+                 <a href="{% url 'change_password' %}">修改密码 / </a>
+                 <a href="{% url 'logout' %}">登出 / </a>
+        {% else %}
+                 <a href="{% url 'login' %}">Log-in</a>
+        {% endif %}
+    </span>
+</div>
+<div id="subheader">
+    <div class="cart">
+        {% with total_items=cart|length %}
+        {% if cart|length > 0 %}
+        你的购物车:
+        <a href="{% url 'cart:cart_detail' %}">
+            {{ total_items }} 个商品{{ total_items|pluralize }},
+            ￥{{ cart.get_total_price }}
+        </a>
+        {% else %}
+        Your cart is empty.
+        {% endif %}
+        {% endwith %}
+    </div>
+</div>
+<div id="content">
+    {% block content %}
+    {% endblock %}
+</div>
+</body>
+</html>

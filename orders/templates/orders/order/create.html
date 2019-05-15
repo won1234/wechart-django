@@ -1,0 +1,33 @@
+{% extends "mall/base.html" %}
+
+{% block title %}
+Checkout
+{% endblock %}
+
+{% block content %}
+<h1>结算</h1>
+
+<div class="order-info">
+    <h3>你的订单信息</h3>
+    <ul>
+        {% for item in cart %}
+        <li>
+            {{ item.quantity }}x {{ item.product.name }}
+            <span>￥{{ item.total_price }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    <p>总计: ￥{{ cart.get_total_price }}</p>
+</div>
+
+{% if request.user.is_authenticated %}
+<form action="." method="post" class="order-form">
+    <!--    {{ form.as_p }}-->
+    <p>用户：{{ request.user.first_name }}</p>
+    <p>联系电话：{{ user_profile.mobile }}</p>
+    <p>地址：{{ user_profile.address }}</p>
+    <p><input type="submit" value="提交订单"></p>
+    {% csrf_token %}
+</form>
+{% endif %}
+{% endblock %}
