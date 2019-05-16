@@ -185,6 +185,7 @@ ul.errorlist {
     color:#444;
     padding:15px 100px;
     overflow:auto;
+    font-size:3rem;
 }
 
 #subheader .cart {
@@ -193,14 +194,14 @@ ul.errorlist {
 }
 
 #content {
-    padding:0 100px;
+/*     padding:0 0px; */
     overflow:hidden;
 }
 
 #sidebar {
-    font-size:30px;
+    font-size:5rem;
     width:220px;
-    padding:30px 20px 0 0;
+    padding:0 10px 0 0;
     float:left;
 }
 
@@ -233,15 +234,18 @@ ul.errorlist {
     width: 96%;
     margin-right:-220px;
     overflow:hidden;
+    font-size:2rem;
 }
 
 .product-list .item {
-    font-size: 35px;
-    width:25%;
-    padding:10px 20px 10px 0;
+    font-size: 5rem;
+    width:70%;
+    padding:00px 0px 0px 0;
     float:left;
     text-align:center;
-    line-height:1.2;
+/*     line-height:1.2; */
+    border:5px solid #77b6e2;
+    margin-top:20px;
 }
 
 .product-list .item img {
