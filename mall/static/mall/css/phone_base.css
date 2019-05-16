@@ -348,6 +348,11 @@ ul.errorlist {
     margin-left:30px;
 }
 
+.order_created {
+    font-size:3rem;
+}
+
+
 .neg {
     color:#dc1616;
 }
