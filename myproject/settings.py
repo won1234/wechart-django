@@ -24,7 +24,7 @@ SECRET_KEY = '2-pwv_8=l8yi-+th0=%4t@(5y139#7n%vbq&u17xipf+iy(fae'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['47.98.195.235', 'www.yuexiangbao.cn']
 
 # Application definition
 
