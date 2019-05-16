@@ -24,13 +24,14 @@ a.button, input[type="submit"] {
     background:#5993bb;
     border-radius:4px;
     padding:10px 20px;
-    font-size:28px;
+    font-size:4rem;
     border:0;
 }
 
 a.button.light {
     color:#666;
     background:#ededed;
+    font-size:4rem;
 }
 
 .text-left {
@@ -40,6 +41,7 @@ a.button.light {
 .text-right {
     text-align:right;
 }
+
 
 table {
     width:100%;
@@ -70,19 +72,34 @@ thead th, tbody tr.total {
 
 table.cart {
     margin-bottom:40px;
+/*     font-size:4rem; */
 }
 
 table.cart img {
-    width:180px;
+    width:100px;
 }
 
 tbody td.num {
     text-align:right;
+/*     font-size:-webkit-xxx-large */
 }
 
 td input[type="submit"] {
-    font-size:24px;
-    padding:4px 10px;
+    font-size:2rem;
+    width:60%;
+}
+
+tbody tr td {
+    text-align:center;
+    padding:5px;
+}
+
+td input[type="number"] {
+    font-size:30px;
+    width:60%;
+    margin-top:40px;
+    margin-bottom:20px;
+    font-size:2rem;
 }
 
 form p label, form p input {
