@@ -3,8 +3,6 @@ from celery import task
 from .models import Order, OrderItem
 from login.models import Profile
 
-# todo 获取用户信息，发给用户微信
-
 from .wechartAPI.api.src import sendmsg
 
 

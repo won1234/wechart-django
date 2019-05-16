@@ -1,0 +1,93 @@
+body {
+    margin:0;
+    padding:0;
+    font-family:helvetica, sans-serif;
+}
+
+p {
+    line-height: 1.8;
+}
+
+a {
+    color:#12c064;
+    text-decoration:none;
+}
+
+a:hover {
+    color:#00a74f;
+}
+
+h1, h2, h3, h4, h5 , h6 { font-family: 'Muli', sans-serif; font-weight:normal; }
+
+h1 {
+    border-bottom:1px solid #bbb;
+    padding:0 0 10px 0;
+    margin:10px 0 20px 0;
+}
+
+h2 {
+    margin:30px 0 20px;
+}
+
+ol {
+    line-height:1.5;
+}
+
+#header {
+    padding:10px 100px;
+    font-size:14px;
+    background:#12c064;
+    color:#fff;
+    border-bottom:4px solid #1cdf78;
+    overflow:auto;
+}
+
+#header .logo {
+    font-family: 'Muli', sans-serif;
+/*     float:left; */
+    color:#f3f7cc;
+    font-size:5rem;
+    margin-right:10%;
+}
+
+#content {
+    padding:5rem 3rem;
+    font-size:3rem;
+}
+
+/* forms */
+form {
+    overflow:auto;
+}
+
+form p {
+    width:100%;
+    overflow:auto;
+}
+
+label {
+    float:left;
+/*     clear:both; */
+    color:#333;
+    margin-bottom:1rem;
+
+
+input, textarea {
+    clear:both;
+/*     float:left; */
+    width:100%;
+/*     margin:0 0 10px; */
+    background:#efefef;
+    border:1px solid;
+    padding:8px;
+    box-sizing: border-box;
+    font-size:3rem;
+}
+input[type=submit], a.button {
+    font-weight:bold;
+    background:#12c064;
+    color:#fff;
+    padding:10px 20px;
+/*     font-size:; */
+    text-transform:uppercase;
+}
