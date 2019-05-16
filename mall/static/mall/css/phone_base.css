@@ -315,15 +315,18 @@ ul.errorlist {
 
 .order-form {
     float:left;
+    font-size:3rem;
+    margin-top:5rem;
 }
 
 .order-info {
-    float:right;
-    width:300px;
+/*     float:right; */
+    width:90%;
     background:#efefef;
     padding:10px 20px;
     color:#333;
     border-bottom:4px solid #5993bb;
+    font-size:3rem;
 }
 
 .order-info h3 {
@@ -333,7 +336,7 @@ ul.errorlist {
 .order-info ul li {
     margin:0;
     padding:0;
-    font-size:28px;
+/*     font-size:28px; */
 }
 
 .order-info p {
@@ -342,7 +345,7 @@ ul.errorlist {
 }
 
 .order-info span {
-    float:right;
+    margin-left:30px;
 }
 
 .neg {
