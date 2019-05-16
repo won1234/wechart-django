@@ -3,7 +3,7 @@
 <head>
     <title>{% block title %}{% endblock %}</title>
     {% load staticfiles %}
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
 <body>
 <div id="header">
@@ -16,7 +16,7 @@
                  <a href="{% url 'change_password' %}">修改密码 / </a>
                  <a href="{% url 'logout' %}">登出 / </a>
         {% else %}
-                 <a href="{% url 'login' %}">Log-in</a>
+                 <a href="{% url 'login' %}">登录</a>
         {% endif %}
     </span>
 </div>
