@@ -23,7 +23,7 @@ def order_created(user_profile_id, order_id):
         order_detail_cost = order_detail_cost + str(order_item.product.name) + ':' + str(
             order_item.quantity) + "件。共" + str(
             order_item.get_cost()) + "元\n"
-        order_detail = order_detail + str(order_item.product.name) + ':' + str(order_item.quantity) + "件。"
+        order_detail = order_detail + str(order_item.product.name) + ':' + str(order_item.quantity) + "件。\n"
     message_user = '亲 {},你已经成功下单了。\n订单号{}，\n下单时间:\n {}，\n\n{}\n总金额{}元'.format(first_name,
                                                                               order_id,
                                                                               created_time,

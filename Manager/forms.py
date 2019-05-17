@@ -6,7 +6,7 @@ USERS_list = [(0, '全部')]  # 当POST为0时，代表全部用户
 # USERS_list = []  # 当POST为0时，代表全部用户
 for i in USERS:
     USERS_list.append((i.user.id, i.user.first_name))
-
+# print(USERS_list)
 is_paid = ((0, '全部'), (1, '已支付'), (2, '未支付'))
 is_send = ((0, '全部'), (1, '已发货'), (2, '未发货'))
 
