@@ -11,6 +11,7 @@ from datetime import timedelta
 @login_required
 def order_list(request):
     if request.method == 'POST':
+        global form
         form = SelectOrdersForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
@@ -46,23 +47,39 @@ def order_list(request):
                 if cd['send'] == 2:
                     orders_fliter = o2.filter(send=False)
             else:
-                orders_fliter = o2
+                 orders_fliter = o2
             # 取得每个订单对应的清单数据
+            global order_items
             order_items = {}
             for order in orders_fliter:
                 order_items[order] = OrderItem.objects.filter(order=order)
-                # 使用paginator 分页
-                paginator = Paginator(orders_fliter, 15)  # 每页5条
-                page = request.GET.get('page')  # html 传过来的页数
-                try:
-                    orders = paginator.page(page)  # 返回orders为page对象
-                except PageNotAnInteger:  # 当向page()提供一个不是整数的值时抛出。
-                    orders = paginator.page(1)  # 如果page不是一个整数，返回第一页
-                except EmptyPage:  # 当向page()提供一个有效值，但是那个页面上没有任何对象时抛出。
-                    orders = paginator.page(paginator.num_pages)  # 如果page数量超过返回，发送最后一页的值
+            # 使用paginator 分页
+            global paginator
+            paginator = Paginator(orders_fliter, 3)  # 每页5条
+            page = request.GET.get('page')  # html 传过来的页数
+            try:
+                orders = paginator.page(page)  # 返回orders为page对象
+            except PageNotAnInteger:  # 当向page()提供一个不是整数的值时抛出。
+                orders = paginator.page(1)  # 如果page不是一个整数，返回第一页
+            except EmptyPage:  # 当向page()提供一个有效值，但是那个页面上没有任何对象时抛出。
+                orders = paginator.page(paginator.num_pages)  # 如果page数量超过返回，发送最后一页的值
             return render(request, 'manager/order_list.html',
-                          {'orders': orders_fliter, 'order_items': order_items, 'form': form})
-    form = SelectOrdersForm()
-    return render(request, 'manager/order_list.html', {'form': form})
+                          {'orders': orders, 'order_items': order_items, 'form': form})
+
+    else:
+        if request.GET.get('page'):  # 判断有没page传过来 /manager/?page=2
+            page = request.GET.get('page')  # html 传过来的页数
+            try:
+                orders = paginator.page(page)  # 返回orders为page对象
+            except PageNotAnInteger:  # 当向page()提供一个不是整数的值时抛出。
+                orders = paginator.page(1)  # 如果page不是一个整数，返回第一页
+            except EmptyPage:  # 当向page()提供一个有效值，但是那个页面上没有任何对象时抛出。
+                orders = paginator.page(paginator.num_pages)  # 如果page数量超过返回，发送最后一页的值
+            return render(request, 'manager/order_list.html',
+                          {'orders': orders, 'order_items': order_items, 'form': form})
+        else:
+            form = SelectOrdersForm()
+            return render(request, 'manager/order_list.html', {'form': form})
+
 # todo 加入是否已经发货，是否收款功能。
 # 根据权限进行判断，是否展示确认功能
