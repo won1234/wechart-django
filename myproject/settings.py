@@ -23,6 +23,7 @@ SECRET_KEY = '2-pwv_8=l8yi-+th0=%4t@(5y139#7n%vbq&u17xipf+iy(fae'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+# DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'cart',
     'orders',
     'Manager',
+    'help',
 ]
 
 MIDDLEWARE = [
