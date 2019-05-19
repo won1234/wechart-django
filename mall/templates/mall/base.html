@@ -22,6 +22,9 @@
         <li {% if request.path|slice:"6" == '/order' %}class="selected"{% endif %}>
         <a href="{% url 'orders:order_list' %}">我的订单</a>
         </li>
+        <li {% if request.path|slice:"6" == '/order' %}class="selected"{% endif %}>
+        <a href="#">帮助</a>
+        </li>
     </ul>
     {% endif %}
     <span class="user">

@@ -55,7 +55,7 @@ def order_list(request):
                 order_items[order] = OrderItem.objects.filter(order=order)
             # 使用paginator 分页
             global paginator
-            paginator = Paginator(orders_fliter, 3)  # 每页5条
+            paginator = Paginator(orders_fliter, 15)  # 每页5条
             page = request.GET.get('page')  # html 传过来的页数
             try:
                 orders = paginator.page(page)  # 返回orders为page对象
