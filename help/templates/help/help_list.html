@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>帮助</title>
+</head>
+<body>
+    <div id="help_ul">
+        <ul>
+            {% for help_doc in help_docs %}
+            <li>{{ help_doc.title }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
+

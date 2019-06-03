@@ -18,6 +18,7 @@ class Order(models.Model):
     paid = models.BooleanField(default=False, verbose_name='是否支付')  # 区分支付和未支付
     send = models.BooleanField(default=False, verbose_name='是否发货')  # 是否发货
     is_delete = models.BooleanField(default=False, verbose_name='是否删除')  # FALSE时表示未删除，True表示改订单删除了。
+    description = models.TextField(verbose_name='订单描述', blank=True, null=True)  # 订单描述,为管理员时使用
     total_cost = models.CharField(max_length=20)    # 订单金额
 
     class Meta:
