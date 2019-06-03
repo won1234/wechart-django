@@ -7,7 +7,7 @@
     <div id="help_ul">
         <ul>
             {% for help_doc in help_docs %}
-            <li>{{ help_doc.title }}</li>
+            <li><a href="{{ help_doc.get_absolute_url }}">{{ help_doc.title }}</a></li>
             {% endfor %}
         </ul>
     </div>

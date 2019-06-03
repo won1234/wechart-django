@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.urls import reverse
 
 # Create your models here.
 # 发表帮助文档
@@ -11,6 +11,10 @@ class Help(models.Model):
     class Meta:
         ordering = ('order_by',)  # 根据order_by排序
         verbose_name = '文章'
+
+    def get_absolute_url(self):
+        return reverse('help:help_detail',
+                       args=[self.id])
 
     def __str__(self):
         return self.title
