@@ -1,0 +1,19 @@
+#help_ul {
+    float:left;
+    font-size:5rem;
+    margin-left:5%;
+}
+
+#help_ul li {
+    margin-top:20px;
+}
+
+#help_detail_title {
+    font-size:5rem;
+    margin-left:30%;
+}
+
+#help_detail_contents {
+    font-size:3rem;
+    text-indent: 6rem;
+}

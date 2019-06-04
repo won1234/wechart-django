@@ -2,11 +2,13 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ help_doc.title }}</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static 'css/help.css' %}">
 </head>
 <body>
-    <h1>{{ help_doc.title }}</h1>
-    <div>
-        {{ help_doc.contents }}
+    <h1 id="help_detail_title">{{ help_doc.title }}</h1>
+    <div id="help_detail_contents">
+        {{ help_doc.contents|safe }}
     </div>
 </body>
 </html>
