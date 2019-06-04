@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>帮助</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static 'css/help.css' %}">
+</head>
+<body>
+    <div id="help_ul">
+        <ul>
+            {% for help_doc in help_docs %}
+            <li><a href="{{ help_doc.get_absolute_url }}">{{ help_doc.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
+
