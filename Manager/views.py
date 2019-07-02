@@ -6,12 +6,40 @@ from orders.models import Order, OrderItem
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import SelectOrdersForm
 from datetime import timedelta
+from django.http import HttpResponse
+from django.template import loader, Context
+
+orders_fliter = None   # 订单
+order_items = {}     # 清单 字典｛‘订单’：对象｝
+cd = None   # 查询集合
+
+# 0702 添加csv导出功能
+def export_to_csv(request):
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="orders.csv"'
+
+    # The data is hard-coded here, but you could load it from a database or
+    # some other source.
+    first_row = ('订单号', '创建时间', '下单人', '是否发货', '是否支付', '产品', '数量')
+
+    t = loader.get_template('manager/orders_manager.csv')
+    # c = Context({
+    #     'data': csv_data,
+    # })
+    # print({'orders': orders_fliter, 'order_items': order_items})
+    # 字典格式
+    c = {'cd': cd, 'first_row': first_row, 'orders': orders_fliter, 'order_items': order_items, }
+    response.write(t.render(c))
+    return response
 
 
 @login_required
 def order_list(request):
     if request.method == 'POST':
         global form
+        global orders_fliter
+        global cd
         form = SelectOrdersForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
@@ -21,14 +49,14 @@ def order_list(request):
             # is_send = ((0, '全部'), (1, '已发货'), (2, '未发货'))
             cs = cd['created_start']
             ce = cd['created_end']
-            if cs and ce and cs <= ce:   # 当开始时间和结束时间都不为空，且开始时间小于等于结束时间
+            if cs and ce and cs <= ce:  # 当开始时间和结束时间都不为空，且开始时间小于等于结束时间
                 # print(cs, ce)    # 取得的timedate.date的时间为00：00：00，所以要查今天的话，结束时间+1天
-                o0 = Order.objects.filter(created__range=(cs, ce+timedelta(days=1)))
-            elif not cs and ce:    # 开始时间为空,结束时间不为空
-                o0 = Order.objects.filter(created__lte=(ce+timedelta(days=1)))
-            elif not ce and cs:    # 结束时间为空,开始时间不为空
+                o0 = Order.objects.filter(created__range=(cs, ce + timedelta(days=1)))
+            elif not cs and ce:  # 开始时间为空,结束时间不为空
+                o0 = Order.objects.filter(created__lte=(ce + timedelta(days=1)))
+            elif not ce and cs:  # 结束时间为空,开始时间不为空
                 o0 = Order.objects.filter(created__gte=cs)
-            else:                   # 开始时间和结束时间都为空
+            else:  # 开始时间和结束时间都为空
                 o0 = Order.objects.all()
             if cd['user']:
                 o1 = o0.filter(user=Profile.objects.get(user=(User.objects.get(id=cd['user']))))
@@ -47,10 +75,10 @@ def order_list(request):
                 if cd['send'] == 2:
                     orders_fliter = o2.filter(send=False)
             else:
-                 orders_fliter = o2
+                orders_fliter = o2
             # 取得每个订单对应的清单数据
             global order_items
-            order_items = {}
+            # order_items = {}
             for order in orders_fliter:
                 order_items[order] = OrderItem.objects.filter(order=order)
             # 使用paginator 分页

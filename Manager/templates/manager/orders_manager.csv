@@ -1,0 +1,6 @@
+用户：{{ cd.user }}, 是否支付：{{ cd.paid }}, 是否发送：{{ cd.send }}, 开始时间：{{ cd.created_start }}, 结束时间：{{ cd.created_end }}
+{{ first_row.0 }}, {{ first_row.1 }}, {{ first_row.2 }}, {{ first_row.3 }}, {{ first_row.4 }}, {% load my_filters %}{% for order in orders %}
+{{ order.id }}, {{ order.created }}, {{ order.user.user.first_name }}, {{ order.send }}, {{ order.paid }},{{ first_row.5 }}, {{ first_row.6 }}
+{% for order_item in order_items|get_value:order %},,,,,{{ order_item.product.name }}, {{ order_item.quantity }}
+{% endfor %}
+{% endfor %}
