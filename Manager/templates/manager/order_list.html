@@ -13,6 +13,7 @@
             {{ form }}
             {% csrf_token %}
             <input type="submit" value="确定">
+            <a href="{% url 'manager:export_list' %}">导出</a>
         </form>
     </div>
     {% endif %}
