@@ -97,18 +97,37 @@ def export_to_csv(filter_conditon, title_row, datas, template_csv):
     return response
 
 
+# 导出TXT功能
+def export_to_txt(filter_conditon, title_row, datas, template_csv):
+    # filter_conditon 过滤的条件
+    # title_row标题行
+    # datas 数据
+    # template_csv 模版文件名
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/plain')
+    # codecs.BMO_UTF8解决文件内容中文乱码
+    response.write(codecs.BOM_UTF8)
+    response['Content-Disposition'] = 'attachment; filename="orders.txt"'
+
+    # The data is hard-coded here, but you could load it from a database or
+    # some other source.
+    # first_row = ('订单号', '创建时间', '下单人', '是否发货', '是否支付', '产品', '数量')
+
+    t = loader.get_template('manager/' + template_csv)
+    # 字典格式
+    c = {'filter_conditon': filter_conditon, 'title_row': title_row, 'datas': datas}
+    # response.write(t.render(c))
+    response.write("<p>Here's the text of the Web page.</p>")
+    response.write("<p>Here's another paragraph.</p>")
+    return response
+
+
 @login_required
 def order_list(request):
-    # print('page', 123)
-    # if request.method == 'GET':
-
     if not request.GET.get('user') and not request.GET.get('page'):  # 通过传过来的url，判断是刚打开页面还是点了确定
         form = SelectOrdersForm()
-        # print('456')
         return render(request, 'manager/order_list.html', {'form': form})
     else:
-        # print('678')
-        # print(request.GET)
         form = SelectOrdersForm(request.GET)
         if form.is_valid():
             cd = form.cleaned_data
@@ -120,15 +139,16 @@ def order_list(request):
             orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
             # 查询数据，取得的是个列表
             orders_items_list = orders_sql.orders_items()
+            # print('request.scheme', request.scheme)
+            # print('request.path', request.path)
+            # print('request.encoding', request.encoding)
+            # print('request.META', request.META)
             # 导出为cvs
             if request.GET['export_csv'] == 'on':
-                # print('export csv')
-                # filter_conditon = orders_sql
                 title_row = ('订单号', '创建时间', '下单人', '是否发货', '是否支付', '产品', '数量')
-                # datas = orders_items_list
-                # template_csv = 'orders_manager.csv'
                 return export_to_csv(filter_conditon=orders_sql, title_row=title_row, datas=orders_items_list,
                                      template_csv='orders_manager.csv')
+
             else:
                 # 使用paginator 分页，点一次分页，执行一次这个函数，只是展示的时候不进行展示
                 # global paginator
@@ -143,6 +163,7 @@ def order_list(request):
                     orders_items_list = paginator.page(paginator.num_pages)  # 如果page数量超过返回，发送最后一页的值
                 return render(request, 'manager/order_list.html',
                               {'orders_items_list': orders_items_list, 'form': form, 'url_get': request.GET})
+
 
 # 用于管理员查看,含订单金额页面，报表导出功能；
 @login_required
@@ -165,7 +186,7 @@ def order_list_cost(request):
             orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
             # 查询数据，取得的是个列表
             orders_items_list = orders_sql.orders_items()
-            if request.GET['export_csv'] == 'on':   # 导出cvs
+            if request.GET['export_csv'] == 'on':  # 导出cvs
                 # print('export csv')
                 # filter_conditon = orders_sql
                 title_row = ('订单号', '创建时间', '下单人', '订单金额', '是否发货', '是否支付', '产品', '数量', '单价', '总价')
