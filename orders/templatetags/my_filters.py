@@ -7,3 +7,9 @@ register = template.Library()     # 固定格式
 @register.filter(name='get_value')   # 注册自定义的filter
 def get_value(d, key_name):     # 传入一个列表和字典。根据列表内容取得字典
     return d.get(key_name)
+
+# 传入两个数,返回相乘的结果
+@register.filter
+def multiplication(m1, m2):
+    return m1*m2
+

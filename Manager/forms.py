@@ -24,3 +24,4 @@ class SelectOrdersForm(forms.Form):
     created_end = forms.DateField(required=False, label='结束日期',
                                   widget=forms.SelectDateWidget(empty_label=("年", "月", "日"))
                                   )  # 下单日期
+    export_csv = forms.BooleanField(required=True, initial='off', widget=forms.HiddenInput(), label='导出cvs')
