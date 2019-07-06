@@ -1,6 +1,6 @@
 用户：{{ filter_conditon.user }}, 是否支付：{% if filter_conditon.paid == 0 %}全部{% elif filter_conditon.paid == 1 %}已支付{% else %}未支付{% endif %}, 是否发货：{% if filter_conditon.send == 0 %}全部{% elif filter_conditon.send == 1 %}已发货{% else %}未发货{% endif %},,, 开始时间：{{ filter_conditon.start }}, 结束时间：{{ filter_conditon.end }}
-{{ title_row.0 }}, {{ title_row.1 }}, {{ title_row.2 }}, {{ title_row.3 }}, {{ title_row.4 }}, {% for data in datas %}{% with order=data.0 %}
-{{ order.id }}, {{ order.created }}, {{ order.user.user.first_name }}, {% if order.send %}已发货{% else %}未发货{% endif %}, {% if order.paid %}已支付{% else %}未支付{% endif %},{{ title_row.5 }}, {{ title_row.6 }}
-{% with items=data.1 %}{% for order_item in items %},,,,,{{ order_item.product.name }}, {{ order_item.quantity }}
+{{ title_row.0 }}, {{ title_row.1 }}, {{ title_row.2 }}, {{ title_row.3 }}, {{ title_row.4 }},{{ title_row.7 }} {% for data in datas %}{% with order=data.0 %}
+{{ order.id }}, {{ order.created }}, {{ order.user.user.first_name }}, {% if order.send %}已发货{% else %}未发货{% endif %}, {% if order.paid %}已支付{% else %}未支付{% endif %},{% if order.description %}{{ order.description }}{% endif %},{{ title_row.5 }}, {{ title_row.6 }}
+{% with items=data.1 %}{% for order_item in items %},,,,,,{{ order_item.product.name }}, {{ order_item.quantity }}
 {% endfor %}{% endwith %}{% endwith %}
 {% endfor %}

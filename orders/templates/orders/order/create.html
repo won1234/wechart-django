@@ -26,6 +26,7 @@ Checkout
     <p>用户：{{ request.user.first_name }}</p>
     <p>联系电话：{{ user_profile.mobile }}</p>
     <p>地址：{{ user_profile.address }}</p>
+    订单描述：<p><input type="text" name="description"></p>
     <p><input type="submit" value="提交订单"></p>
     {% csrf_token %}
 </form>

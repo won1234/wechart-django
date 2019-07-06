@@ -18,8 +18,12 @@ def order_create(request):
     user = User.objects.get(username=request.user.username)
     user_profile = Profile.objects.get(user=user)     # 当前用户的扩展信息
     if request.method == 'POST':
-        # 创建订单
-        order = Order.objects.create(user=user_profile, total_cost=cart.get_total_price())  # 返回的是对象
+        # 创建订单, 返回的order是对象
+        description = request.POST.get('description', None)
+        if description:
+            order = Order.objects.create(user=user_profile, total_cost=cart.get_total_price(), description=description)
+        else:
+            order = Order.objects.create(user=user_profile, total_cost=cart.get_total_price())
         for item in cart:    # 取得购物车中的物品清单，写入数据库
             OrderItem.objects.create(order=order,
                                      product=item['product'],
@@ -27,7 +31,7 @@ def order_create(request):
                                      quantity=item['quantity'])
         # 清空购物车
         cart.clear()
-        order_created.delay(user_profile.id, order.id)  # 启动发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
+        order_created.delay(user_profile.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
         return render(request,
                       'orders/order/created.html',
                       {'order': order})

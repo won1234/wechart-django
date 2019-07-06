@@ -6,9 +6,11 @@ from orders.models import Order, OrderItem
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import SelectOrdersForm
 from datetime import timedelta
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.template import loader
 import codecs
+from reportlab.pdfgen import canvas
+import io
 
 
 # 传入查询的条件，取得数据库中的订单数据
@@ -99,27 +101,42 @@ def export_to_csv(filter_conditon, title_row, datas, template_csv):
 
 # 导出TXT功能
 def export_to_txt(filter_conditon, title_row, datas, template_csv):
-    # filter_conditon 过滤的条件
-    # title_row标题行
-    # datas 数据
-    # template_csv 模版文件名
     # Create the HttpResponse object with the appropriate CSV header.
-    response = HttpResponse(content_type='text/plain')
-    # codecs.BMO_UTF8解决文件内容中文乱码
-    response.write(codecs.BOM_UTF8)
-    response['Content-Disposition'] = 'attachment; filename="orders.txt"'
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
 
     # The data is hard-coded here, but you could load it from a database or
     # some other source.
-    # first_row = ('订单号', '创建时间', '下单人', '是否发货', '是否支付', '产品', '数量')
+    csv_data = (
+        ('First row', 'Foo', 'Bar', 'Baz'),
+        ('Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"),
+    )
 
-    t = loader.get_template('manager/' + template_csv)
-    # 字典格式
-    c = {'filter_conditon': filter_conditon, 'title_row': title_row, 'datas': datas}
-    # response.write(t.render(c))
-    response.write("<p>Here's the text of the Web page.</p>")
-    response.write("<p>Here's another paragraph.</p>")
+    t = loader.get_template('manager/my_template_name.txt')
+    response.write(t.render({'data': csv_data}))
     return response
+
+
+# 导出PDF
+def export_to_pdf(request):
+    # Create a file-like buffer to receive PDF data.
+    buffer = io.BytesIO()
+
+    # Create the PDF object, using the buffer as its "file."
+    p = canvas.Canvas(buffer)
+
+    # Draw things on the PDF. Here's where the PDF generation happens.
+    # See the ReportLab documentation for the full list of functionality.
+    p.drawString(100, 100, "Hello world.")
+
+    # Close the PDF object cleanly, and we're done.
+    p.showPage()
+    p.save()
+    # buffer用来代替文件来存储pdf文档, 在使用FileResponse返回之前，您需要将流位置重置为其开头：
+    buffer.seek(io.SEEK_SET)
+    # FileResponse sets the Content-Disposition header so that browsers
+    # present the option to save the file.
+    return FileResponse(buffer, as_attachment=True, filename='hello.pdf')
 
 
 @login_required
@@ -145,9 +162,10 @@ def order_list(request):
             # print('request.META', request.META)
             # 导出为cvs
             if request.GET['export_csv'] == 'on':
-                title_row = ('订单号', '创建时间', '下单人', '是否发货', '是否支付', '产品', '数量')
+                title_row = ('订单号', '创建时间', '下单人', '是否发货', '是否支付', '产品', '数量', '订单描述')
                 return export_to_csv(filter_conditon=orders_sql, title_row=title_row, datas=orders_items_list,
                                      template_csv='orders_manager.csv')
+                # return export_to_pdf(request)
 
             else:
                 # 使用paginator 分页，点一次分页，执行一次这个函数，只是展示的时候不进行展示
@@ -189,7 +207,7 @@ def order_list_cost(request):
             if request.GET['export_csv'] == 'on':  # 导出cvs
                 # print('export csv')
                 # filter_conditon = orders_sql
-                title_row = ('订单号', '创建时间', '下单人', '订单金额', '是否发货', '是否支付', '产品', '数量', '单价', '总价')
+                title_row = ('订单号', '创建时间', '下单人', '订单金额', '是否发货', '是否支付', '产品', '数量', '单价', '总价', '订单描述')
                 # datas = orders_items_list
                 # template_csv = 'orders_manager.csv'
                 return export_to_csv(filter_conditon=orders_sql, title_row=title_row, datas=orders_items_list,
@@ -208,3 +226,8 @@ def order_list_cost(request):
                     orders_items_list = paginator.page(paginator.num_pages)  # 如果page数量超过返回，发送最后一页的值
                 return render(request, 'manager/order_list_cost.html',
                               {'orders_items_list': orders_items_list, 'form': form, 'url_get': request.GET})
+
+
+# 统计今天的数据，用户，有哪些订单，哪些东西；最后每样东西总计
+def orders_today(request):
+    pass
