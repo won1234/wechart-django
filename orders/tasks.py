@@ -1,9 +1,17 @@
-from celery import task
+from celery import task, shared_task
 # from django.core.mail import send_mail
 from .models import Order, OrderItem
 from login.models import Profile
 
 from .wechartAPI.api.src import sendmsg
+from celery.schedules import crontab
+
+
+@shared_task
+def add(x, y):
+    msg_sent = sendmsg.test('test')
+    print('it works', 'x+y=', x+y)
+    return x+y
 
 
 @task

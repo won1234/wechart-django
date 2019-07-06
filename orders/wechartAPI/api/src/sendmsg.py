@@ -7,6 +7,32 @@ from login.models import Profile
 
 
 # 发送微信企业号消息
+def test(msg):
+    ## 创建实例
+    api1 = CorpApi(TestConf['CORP_ID'], '7_f86lX3DaLpFGKW_Ya6WvKe-QQVKlkjVr5fp0N8cHQ')
+    # 发送给tag的消息
+    api2 = CorpApi(TestConf['CORP_ID'], TestConf['APP_SECRET'])
+    try:
+        ## 发送消息
+        response = api2.httpCall(
+            ['/cgi-bin/message/send?access_token=ACCESS_TOKEN', 'POST'],
+            {
+                # "touser": wechat_name,
+                # "toparty": toparty,
+                "totag": 1,
+                "agentid": 1000002,
+                'msgtype': 'text',
+                'text': {
+                    'content': msg,
+                },
+                'safe': 0,
+            })
+        # print(response['errcode']) errmsg
+        return response  # response是<class 'dict'>
+    except ApiException as e:
+        return str(str(e.errCode) + str(e.errMsg))
+
+# 发送微信企业号消息
 def sendmsgbywechart(user_profile, message_user, message_tag):
     ## 创建实例
     api1 = CorpApi(TestConf['CORP_ID'], '7_f86lX3DaLpFGKW_Ya6WvKe-QQVKlkjVr5fp0N8cHQ')
