@@ -1,17 +1,40 @@
 from celery import task, shared_task
 # from django.core.mail import send_mail
-from .models import Order, OrderItem
+from .models import Order, OrderItem, OrderStatistics
+from mall.models import Product
 from login.models import Profile
-
+from datetime import date
 from .wechartAPI.api.src import sendmsg
-from celery.schedules import crontab
 
 
 @shared_task
-def add(x, y):
-    msg_sent = sendmsg.test('test')
-    print('it works', 'x+y=', x+y)
-    return x+y
+def stat_orders_today():
+    # 1.取得当天的订单数据，2.对订单数据进行统计，3.通过微信发送数据，4.写入数据库，日期，产品，数量，金额
+    total = {}  # {product:{'quantity':..,'Amount':..},...}
+    msg = ''
+    today = date.today()
+    orders = Order.objects.filter(created__date=today)
+    products = Product.objects.all()
+    for product in products:  # 每样产品的数量全置为0
+        total[product] = {'quantity': 0, 'amount': 0}
+    for order in orders:  # 进行循环统计
+        order_items = OrderItem.objects.filter(order=order)
+        for order_item in order_items:
+            product = order_item.product
+            quantity = total[product]['quantity'] + order_item.quantity
+            amount = total[product]['amount'] + order_item.quantity * order_item.price
+            total[product] = {'quantity': quantity, 'amount': amount}
+    for product, qa_dic in total.items():
+        # 写入数据库,发送消息
+        quantity = qa_dic['quantity']
+        if quantity:
+            order_statistics = OrderStatistics.objects.create(date=today, product=product, quantity=quantity,
+                                                             amount=qa_dic['amount'])
+            # print(order_statistics)
+            msg = msg + product.name + ' ： ' + str(quantity) + '\n'
+    msg = today.strftime('%Y-%m-%d') + '提交的订单统计\n' + msg
+    sendmsg.test(msg)
+    return order_statistics
 
 
 @task

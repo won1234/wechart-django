@@ -19,10 +19,10 @@ class Order(models.Model):
     send = models.BooleanField(default=False, verbose_name='是否发货')  # 是否发货
     is_delete = models.BooleanField(default=False, verbose_name='是否删除')  # FALSE时表示未删除，True表示改订单删除了。
     description = models.TextField(verbose_name='订单描述', blank=True, null=True)  # 订单描述,为管理员时使用
-    total_cost = models.CharField(max_length=20, verbose_name='订单金额')    # 订单金额
+    total_cost = models.CharField(max_length=20, verbose_name='订单金额')  # 订单金额
 
     class Meta:
-        ordering = ('-created',)   # 按创建时间倒叙排列
+        ordering = ('-created',)  # 按创建时间倒叙排列
         verbose_name = 'Orders'
         verbose_name_plural = '订单'
 
@@ -56,3 +56,21 @@ class OrderItem(models.Model):
     # 返回物品的花费
     def get_cost(self):
         return self.price * self.quantity
+
+
+# （一天）内的订单每样产品的数量统计表
+class OrderStatistics(models.Model):
+    date = models.DateField(verbose_name='统计日期')
+    product = models.ForeignKey(Product,
+                                null=True,
+                                on_delete=models.SET_NULL,
+                                verbose_name='产品'
+                                )
+    quantity = models.PositiveIntegerField(verbose_name='数量')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='金额')
+
+    class Meta:
+        verbose_name = '订单统计'
+
+    def __str__(self):
+        return '{}'.format(self.id)

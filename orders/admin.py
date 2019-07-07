@@ -1,17 +1,20 @@
 from django.contrib import admin
-from .models import Order, OrderItem
-
+from .models import Order, OrderItem, OrderStatistics
+import codecs
 import csv
 import datetime
 from django.http import HttpResponse
+
 
 # 订单导出CSV
 def export_to_csv(modeladmin, request, queryset):
     opts = modeladmin.model._meta  # 用于获取model字段
     response = HttpResponse(content_type='text/csv')  # 创建一个HttpResponse实例包含一个定制text/csv内容类型来告诉浏览器这个响应需要处理为一个CSV文件。
+    # codecs.BMO_UTF8解决文件内容中文乱码
+    response.write(codecs.BOM_UTF8)
     # 添加一个Content-Disposition头来指示这个HTTP响应包含一个附件。
     response['Content-Disposition'] = 'attachment; \
-           filename={}.csv'.format(opts.verbose_name)   # 导出的文件名
+           filename={}.csv'.format(opts.verbose_name)  # 导出的文件名
     writer = csv.writer(response)  # 创建一个CSV writer对象，该对象将会被写入response对象。
     # 动态的获取model字段通过使用模型（moedl）_meta选项的get_fields()方法。我们排除多对多以及一对多的关系。
     fields = [field for field in opts.get_fields() if not field.many_to_many and not field.one_to_many]
@@ -22,7 +25,7 @@ def export_to_csv(modeladmin, request, queryset):
         data_row = []
         for field in fields:
             value = getattr(obj, field.name)  # 反射，取得字段的值
-            if isinstance(value, datetime.datetime):   # 是否是时间对象
+            if isinstance(value, datetime.datetime):  # 是否是时间对象
                 value = value.strftime('%Y-%m-%d %H:%M:%S')
             data_row.append(value)
         writer.writerow(data_row)
@@ -47,3 +50,13 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Order, OrderAdmin)
+
+
+class OrderStatisticsAdmin(admin.ModelAdmin):
+    list_display = ['id', 'date', 'product', 'quantity', 'amount']
+    list_filter = ['date', 'product']
+    date_hierarchy = 'date'
+    actions = [export_to_csv]
+
+
+admin.site.register(OrderStatistics, OrderStatisticsAdmin)
