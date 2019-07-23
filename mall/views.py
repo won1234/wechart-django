@@ -3,9 +3,10 @@ from .models import Category, Product
 from cart.forms import CartAddProductForm
 from django.contrib.auth.decorators import login_required  # 认证（authentication）框架的login_required装饰器
 
+
 # 检索和展示单一的品类
 @login_required
-def product_list(request, category_slug=None):   # 默认为none，全部展示
+def product_list(request, category_slug=None):  # 默认为none，全部展示
     # 可选参数 category_slug 通过所给产品类别来有选择性的筛选产品。
     # category_slug默认为None
     # print(
@@ -16,9 +17,9 @@ def product_list(request, category_slug=None):   # 默认为none，全部展示
     #       dir(request.session.keys),
     #       )
     category = None
-    categories = Category.objects.all()       # 取得所有品类
+    categories = sorted(Category.objects.all(), key=lambda x: x.id)  # 取得所有品类
     # available=True 的查询集来检索可用的产品
-    products = Product.objects.filter(available=True)
+    products = sorted(Product.objects.filter(available=True), key=lambda x: x.id)
     if category_slug:  # 如果category_slug有值传进来， 修改category
         category = get_object_or_404(Category, slug=category_slug)
         products = products.filter(category=category)  # 取得对应的产品
@@ -37,7 +38,7 @@ def product_detail(request, id, slug):
                                 id=id,
                                 slug=slug,
                                 available=True)
-    cart_product_form = CartAddProductForm()    # 创建form实例
+    cart_product_form = CartAddProductForm()  # 创建form实例
     return render(request,
                   'mall/product/detail.html',
                   {'product': product,
