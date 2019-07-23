@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from orders.models import Order, OrderItem
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import SelectOrdersForm
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.http import HttpResponse, FileResponse
 from django.template import loader
 import codecs
@@ -15,6 +15,18 @@ import io
 
 # 传入查询的条件，取得数据库中的订单数据
 class SqlFilter(object):
+    '''
+        传入参数 ：user用户id（int），
+                    paid（0，1，2）(0, '全部'), (1, '已支付'), (2, '未支付')， int
+                    send（0，1，2）(0, '全部'), (1, '已发货'), (2, '未发货')   int
+                    created_start订单的开始时间，    可以是如‘2018-08-01’字符串, 也可以是datetime对象
+                    created_end订单的结束时间 ，
+        获得的数据： self.user Profile用户实例，
+                    SqlFilter.sql_orders()   订单的queryset
+                    SqlFilter.orders_items()   以[（order,order_items）,...]列表+元组形式返回订单和清单数据
+                    SqlFilter.num_cost()    查询到的的数量与总金额return (orders_num, orders_costs)
+    '''
+
     def __init__(self, user=0, paid=0, send=0, created_start=None, created_end=None):
         self.user = user
         self.paid = paid
@@ -62,7 +74,7 @@ class SqlFilter(object):
             orders_items_list.append((order, OrderItem.objects.filter(order=order)))
         return orders_items_list
 
-    # 返回查询到的的数量与总金额
+    # 返回查询到的订单数量与总金额
     def num_cost(self):
         orders_costs = 0
         orders = self.sql_orders()
@@ -70,6 +82,32 @@ class SqlFilter(object):
         for order in orders:
             orders_costs = orders_costs + order.total_cost
         return (orders_num, orders_costs)
+
+    # 返回查询到的订单，每样产品的总量，订单个数，（管理员+描述：数量）
+    def products_total(self):
+        products_total_dic = {}  # {product:{'total': , 'num': , 'details': ,},....}
+        for orders_items in self.orders_items():
+            order = orders_items[0]
+            if order.user.user.is_superuser:  # 判断是否是超级管理员，返回为true和false
+                order_detail = str(order.description)
+            else:
+                order_detail = order.user.user.first_name
+            order_items = orders_items[1]
+            for order_item in order_items:
+                product = order_item.product
+                quantity = order_item.quantity
+                product_existed = products_total_dic.get(product)  # 如果已经存在返回字典中的内容，否则返回None
+                if product_existed:
+                    product_existed['total'] = product_existed['total'] + quantity
+                    product_existed['num'] = product_existed['num'] + 1
+                    product_existed['details'] = product_existed['details'] + ' ，（' + order_detail + ':' + str(
+                        quantity) + ')'
+                else:  # 如果字典中不存在这个product
+                    detail = '（' + order_detail + ':' + str(quantity) + ')'
+                    products_total_dic[product] = {'total': quantity, 'num': 1, 'details': detail}
+        # 根据产品id对字典进行排序，返回一个列表
+        products_total_list = sorted(products_total_dic.items(), key=lambda x: x[0].id)
+        return products_total_list
 
 
 # 导出CSV功能
@@ -228,6 +266,17 @@ def order_list_cost(request):
                               {'orders_items_list': orders_items_list, 'form': form, 'url_get': request.GET})
 
 
-# 统计今天的数据，用户，有哪些订单，哪些东西；最后每样东西总计
+# 展示当天的数据，每样东西总计，有哪些订单，哪些东西；
+@login_required
 def orders_today(request):
-    pass
+    today_datetime = datetime.today()
+    today_date = today_datetime.strftime("%Y-%m-%d")
+    # 传入条件，创建查询数据库的实例
+    orders_sql = SqlFilter(created_start=today_date)
+    # 查询数据，取得的是个列表
+    orders_items_list = orders_sql.orders_items()
+    # 订单统计
+    products_total = orders_sql.products_total()
+    return render(request, 'manager/orders_today.html',
+                  {'orders_items_list': orders_items_list, 'today_datetime': today_datetime,
+                   'products_total': products_total})

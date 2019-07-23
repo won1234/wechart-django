@@ -240,6 +240,7 @@ ul.errorlist {
 
 .product-list .item img {
     width:100%;
+    height:250px;
     margin-bottom:8px;
 }
 

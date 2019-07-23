@@ -1,0 +1,55 @@
+{% extends "manager/base.html" %}
+
+{% block title %}
+今日订单
+{% endblock %}
+
+{% block content %}
+<div>
+    {% if request.user.is_authenticated %}
+    <div id="orders_total">
+        <strong>{{ today_datetime }}的订单</strong>
+        <ul id="products_total">
+        {% for product_total in products_total %}
+            <li style="border-with:thin;border-style:solid ;border-color:#FF3030;text-align: left;margin-bottom: 20px;padding: 5px;">
+                <strong>产品： {{ product_total.0.name }}</strong>
+                <p>总量：{{ product_total.1.total }}</p>
+                <p>个数： {{ product_total.1.num }}</p>
+                <p>详细清单： {{ product_total.1.details }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    <ul>
+        {% for order_items in orders_items_list %}
+        {% with order=order_items.0 %}
+        <li style="border-with:thin;border-style:dashed ;border-color:#007e7e;text-align: left;margin-bottom: 20px;padding: 5px;">
+            <p>订单号：{{ order.id }}</p>
+            <p>创建时间： {{ order.created }}</p>
+            <p>下单人：{{ order.user.user.first_name }}</p>
+            {% if order.description %}
+            <p>订单描述：{{ order.description }}</p>
+            {% endif %}
+            {% if order.send %}
+            <strong style="font-size:20px; color:#00FF00;">已发货</strong>
+            {% else %}
+            <strong style="font-size:20px; color:#FF0000;">未发货</strong>
+            {% endif %}
+            {% if order.paid %}
+            <strong style="font-size:20px; color:#00FF00;">已支付</strong>
+            {% else %}
+            <strong style="font-size:20px; color:#FF0000;">未支付</strong>
+            {% endif %}
+        {% endwith %}
+        {% with items=order_items.1 %}
+            <!--            展示清单, 使用自定义的过滤器-->
+            {% for order_item in items %}
+            <p>{{ order_item.product.name }}&nbsp;&nbsp;&nbsp;数量:{{ order_item.quantity }}</p>
+            {% endfor %}
+         {% endwith %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endblock %}
