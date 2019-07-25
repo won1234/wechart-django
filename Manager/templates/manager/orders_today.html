@@ -8,7 +8,7 @@
 <div>
     {% if request.user.is_authenticated %}
     <div id="orders_total">
-        <strong>{{ today_datetime }}的订单</strong>
+        <strong>{{ today_datetime }}的订单。 订单个数：{{ orders_items_list|length }}</strong>
         <ul id="products_total">
         {% for product_total in products_total %}
             <li style="border-with:thin;border-style:solid ;border-color:#FF3030;text-align: left;margin-bottom: 20px;padding: 5px;">

@@ -1,0 +1,12 @@
+{% for user,orders in datas.items %}开始时间：{{ filter_conditon.start }}, 结束时间：{{ filter_conditon.end }},{{ user }},{{ orders.total_cost }}
+{% for order,order_items in orders.order_list %}{{ order.id }},{{ order.created }}
+{{title_row.0}},{{title_row.1}},{{title_row.2}},{{title_row.3}}
+{% for order_item in order_items %}{{ order_item.product }},{{ order_item.quantity }},{{ order_item.price }},{{ order_item.get_cost }}
+{% endfor %},,,{{ order.get_total_cost }}
+
+{% endfor %}
+
+
+
+
+{% endfor %}

@@ -1,0 +1,17 @@
+{% extends "mall/base.html" %}
+
+{% block title %}
+我的订单
+{% endblock %}
+
+{% block content %}
+<div id="admin_create_order">
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="确定">
+    </form>
+    <p>{{ error }}</p>
+    <p>{{ products }}</p>
+</div>
+{% endblock %}

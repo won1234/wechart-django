@@ -27,7 +27,12 @@ Checkout
     <p>联系电话：{{ user_profile.mobile }}</p>
     <p>地址：{{ user_profile.address }}</p>
     订单描述：<p><input type="text" name="description"></p>
+    <!-- 判断用户是否有提交订单权限   -->
+    {% for user_permission in user_permissions %}
+        {% if user_permission.name == '提交订单' %}
     <p><input type="submit" value="提交订单"></p>
+        {% endif %}
+    {% endfor %}
     {% csrf_token %}
 </form>
 {% endif %}

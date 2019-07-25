@@ -80,7 +80,7 @@ class SqlFilter(object):
         orders = self.sql_orders()
         orders_num = len(orders)
         for order in orders:
-            orders_costs = orders_costs + order.total_cost
+            orders_costs = orders_costs + order.get_total_cost()
         return (orders_num, orders_costs)
 
     # 返回查询到的订单，每样产品的总量，订单个数，（管理员+描述：数量）
@@ -240,9 +240,9 @@ def order_list_cost(request):
             # is_send = ((0, '全部'), (1, '已发货'), (2, '未发货'))
             # 传入条件，创建查询数据库的实例
             orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
-            # 查询数据，取得的是个列表
+            # 查询数据，取得的是个列表 ，[（order,order_items）,...]列表+元组形式返回订单和清单数据
             orders_items_list = orders_sql.orders_items()
-            if request.GET['export_csv'] == 'on':  # 导出cvs
+            if request.GET['export_csv'] == 'on1':  # 导出cvs1
                 # print('export csv')
                 # filter_conditon = orders_sql
                 title_row = ('订单号', '创建时间', '下单人', '订单金额', '是否发货', '是否支付', '产品', '数量', '单价', '总价', '订单描述')
@@ -250,6 +250,28 @@ def order_list_cost(request):
                 # template_csv = 'orders_manager.csv'
                 return export_to_csv(filter_conditon=orders_sql, title_row=title_row, datas=orders_items_list,
                                      template_csv='order_list_cost.csv')
+            elif request.GET['export_csv'] == 'on2':  # 导出cvs2
+                title_row = ('产品', '数量', '单价', '总价')
+                # 根据用户对订单进行分组
+                order_user_dic = {}
+                # { user1:{
+                #           'order_list':[（order,order_items）, ...,],  # 用户的订单s
+                #           'total_cost':     # 该用户所有订单的总金额
+                #           },
+                #   ...,
+                #  user: {..}
+                # }
+                for order_tuple in orders_items_list:
+                    user = order_tuple[0].user  # 取得订单的用户
+                    order_user_existed = order_user_dic.get(user)  # 用于判断订单中是否含有这个用户
+                    if order_user_existed:
+                        order_user_dic[user]['order_list'].append(order_tuple)   # 添加到列表中
+                        order_user_dic[user]['total_cost'] = order_user_dic[user]['total_cost'] + order_tuple[
+                            0].get_total_cost()
+                    else:
+                        order_user_dic[user] = {'order_list': [order_tuple], 'total_cost': order_tuple[0].get_total_cost()}
+                return export_to_csv(filter_conditon=orders_sql, title_row=title_row, datas=order_user_dic,
+                                     template_csv='order_list_cost_2.csv')
             else:
                 # 使用paginator 分页，点一次分页，执行一次这个函数，只是展示的时候不进行展示
                 # global paginator

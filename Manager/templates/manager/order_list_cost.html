@@ -15,7 +15,8 @@
             <input type="submit" value="确定">
         </form>
     </div>
-    <a href="?user={{ url_get.user }}&paid={{ url_get.paid }}&send={{ url_get.send }}&created_start_year={{ url_get.created_start_year }}&created_start_month={{ url_get.created_start_month }}&created_start_day={{ url_get.created_start_day }}&created_end_year={{ url_get.created_end_year }}&created_end_month={{ url_get.created_end_month }}&created_end_day={{ url_get.created_end_day }}&export_csv=on">导出</a>
+    <a href="?user={{ url_get.user }}&paid={{ url_get.paid }}&send={{ url_get.send }}&created_start_year={{ url_get.created_start_year }}&created_start_month={{ url_get.created_start_month }}&created_start_day={{ url_get.created_start_day }}&created_end_year={{ url_get.created_end_year }}&created_end_month={{ url_get.created_end_month }}&created_end_day={{ url_get.created_end_day }}&export_csv=on1">导出清单表</a><br>
+    <a href="?user={{ url_get.user }}&paid={{ url_get.paid }}&send={{ url_get.send }}&created_start_year={{ url_get.created_start_year }}&created_start_month={{ url_get.created_start_month }}&created_start_day={{ url_get.created_start_day }}&created_end_year={{ url_get.created_end_year }}&created_end_month={{ url_get.created_end_month }}&created_end_day={{ url_get.created_end_day }}&export_csv=on2">导出统计表</a>
     {% endif %}
     <ul>
         {% for order_items in orders_items_list %}
@@ -27,7 +28,7 @@
             {% if order.description %}
             <p>订单描述：{{ order.description }}</p>
             {% endif %}
-            <p>订单金额：{{ order.total_cost }}</p>
+            <p>订单金额：{{ order.get_total_cost }}</p>
             {% if order.send %}
             <strong style="font-size:20px; color:#00FF00;">已发货</strong>
             {% else %}

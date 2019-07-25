@@ -254,6 +254,36 @@ ul.errorlist {
     font-size:2rem;
 }
 
+#admin_create_order {
+    font-size:60px;
+    margin-top:20px;
+    margin-left:3rem;
+}
+
+#admin_create_order select{
+    font-size:50px;
+    margin-top:20px;
+    margin-left:20px;
+    margin-right:60%;
+}
+
+#admin_create_order textarea{
+    font-size:50px;
+    margin-top:20px;
+    margin-left:5px;
+    margin-right:5px;
+    width: 90%;
+    border-style: solid;
+    border-color: #ff0000;
+}
+
+#admin_create_order input{
+    font-size:50px;
+    margin-top:20px;
+    margin-left:5px;
+    margin-right:5px;
+    width: 90%;
+}
 .product-list .item {
     font-size: 2rem;
     width:75%;
@@ -318,10 +348,10 @@ ul.errorlist {
 }
 
 .order-form {
-    float:left;
-    font-size:3rem;
     margin-top:5rem;
 }
+
+
 
 .order-info {
 /*     float:right; */

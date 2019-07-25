@@ -42,7 +42,7 @@ class OrderItemInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'paid', 'send', 'created', 'updated', 'total_cost']
+    list_display = ['id', 'user', 'paid', 'send', 'created', 'updated', 'description']
     list_filter = ['paid', 'send', 'created', 'user', 'updated']
     date_hierarchy = "created"
     inlines = [OrderItemInline]

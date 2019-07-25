@@ -17,7 +17,7 @@ admin.site.register(WechatTag, WechatTagAdmin)
 
 
 class Group2Admin(admin.ModelAdmin):
-    list_display = ['name', 'slug']
+    list_display = ['id', 'name', 'slug']
 
 
 admin.site.register(Group2, Group2Admin)

@@ -60,4 +60,4 @@ class Profile(models.Model):
         verbose_name_plural = '用户2'
 
     def __str__(self):
-        return '{}(profile)'.format(self.user.first_name)
+        return '{}'.format(self.user.first_name)

@@ -32,7 +32,7 @@ class Order(models.Model):
     # 订单中购买物品的总花费。
     def get_total_cost(self):
         # self.items = OrderItem.objects.filter(order=)
-        return sum(item.get_cost() for item in self.items.all())
+        return sum(item.get_cost() for item in self.items.all())   # 不知道为什么可以？？？没用items啊
 
 
 # 订单中的商品信息
