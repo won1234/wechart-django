@@ -264,7 +264,9 @@ ul.errorlist {
     font-size:50px;
     margin-top:20px;
     margin-left:20px;
-    margin-right:60%;
+    margin-right:10%;
+    width:80%;
+    border:5px solid red;
 }
 
 #admin_create_order textarea{

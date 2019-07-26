@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, reverse, redirect
 from .models import OrderItem
 from .forms import AdminCreateOrder
 from cart.cart import Cart
@@ -34,13 +34,19 @@ def order_create(request):
         # 清空购物车
         cart.clear()
         order_created.delay(user_profile.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
-        return render(request,
-                      'orders/order/created.html',
-                      {'order': order})
+        # return render(request,
+        #               'orders/order/created.html',
+        #               {'order': order})
+        return redirect(reverse('orders:order_created', kwargs={'order_id': order.id}))
 
     return render(request,
                   'orders/order/create.html',
                   {'cart': cart, 'user_profile': user_profile, 'user_permissions': user_permissions})
+
+# 订单创建成功页面
+@login_required
+def order_created_view(request, order_id):
+    return render(request, 'orders/order/created.html', {'order_id': order_id})
 
 
 @login_required
@@ -109,8 +115,11 @@ def admin_create_order(request):
                                                  product=product,
                                                  price=product.price,
                                                  quantity=quantity)
-                    form = AdminCreateOrder()  # 创建成功则清空内容
-                    return render(request, 'orders/order/admin_create_order.html', {'form': form, 'error': str(order) + '下单成功'})
+                    order_created.delay(user_profile.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
+                    # form = AdminCreateOrder()  # 创建成功则清空内容
+                    # return render(request, 'orders/order/admin_create_order.html', {'form': form, 'error': str(order) + '下单成功'})
+                    url = reverse('orders:admin_create_order')
+                    return redirect(url)
         else:
             form = AdminCreateOrder()  # 当为一个GET时，返回一个空Form
         return render(request, 'orders/order/admin_create_order.html', {'form': form})
