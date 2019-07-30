@@ -5,7 +5,7 @@ from cart.cart import Cart
 from .tasks import order_created
 from django.contrib.auth.decorators import login_required  # 认证（authentication）框架的login_required装饰器
 from login.models import Profile
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User    # 内置的用户model
 from .models import Order
 from mall.models import Product, Category
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger

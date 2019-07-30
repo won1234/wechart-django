@@ -2,12 +2,29 @@ from django.contrib import admin
 from .models import Profile, WechatTag, Group2, NoPayDate
 
 
+# from django.contrib.auth.models import User
+
+
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'address', 'price_group', 'mobile', 'wechat_name']
+    list_display = ['user', 'user_name_p', 'address', 'price_group', 'mobile', 'wechat_name']
+    search_fields = ('user__username', 'user__first_name')
 
 
 admin.site.register(Profile, ProfileAdmin)
 
+
+# class ProfileInline(admin.StackedInline):  # 将Profile加入到Admin的user表中,内联
+#     model = Profile
+#     can_delete = False
+#
+#
+# class UserAdmin(admin.ModelAdmin):
+#     inlines = [ProfileInline]
+#     list_display = ('username', 'first_name', 'email', 'is_staff', 'is_active', 'is_superuser')
+#
+#
+# admin.site.unregister(User)  # 去掉在admin中的注册
+# admin.site.register(User, UserAdmin)  # 用UserAdmin注册user
 
 class WechatTagAdmin(admin.ModelAdmin):
     list_display = ['wechat_tag_name', 'wechat_tag_id']

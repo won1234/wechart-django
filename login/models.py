@@ -59,5 +59,11 @@ class Profile(models.Model):
         verbose_name = 'profile'
         verbose_name_plural = '用户2'
 
+    def user_name(self):
+        return self.user.first_name
+
+    user_name.short_description = '名字'
+    user_name_p = property(user_name)
+
     def __str__(self):
         return '{}'.format(self.user.first_name)
