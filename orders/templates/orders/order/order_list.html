@@ -23,6 +23,7 @@
             <p>创建时间： {{ order.created }}</p>
             <p>金额： ￥{{ order.get_total_cost }}</p>
             <p>店铺：{{ order.user.address }}</p>
+            <p>订单描述：{{ order.description }}</p>
             {% if order.send %}
             <strong style="font-size:20px; color:#00FF00;">已发货</strong>
             {% else %}

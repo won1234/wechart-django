@@ -135,43 +135,44 @@ def last_order(request):
     user_permissions = user_pro.group2.all()  # 用户的权限
     last_orders = Order.objects.filter(user=user_pro).order_by('-created')  # 取得上次时间最近的订单
     error_msg = ''
-    if last_orders:
+    if last_orders:  # 如果订单不为空
         last_order = last_orders[0]
+        description = last_order.description
         last_order_items = OrderItem.objects.filter(order=last_order)
     else:
         last_order_items = None
+        description = ''
     if request.method == 'POST':  # 点击提交时，取得产品id和数量。
-        post_dict = request.POST.dict()
+        post_dict = request.POST.dict()  # post 的数据
         post_dict.pop('csrfmiddlewaretoken')
+        clean_dict = {}  # 用于存放，判断后都是整数的数据
         description = post_dict.pop('description')
-        # print(post_dict.pop('csrfmiddlewaretoken', 'csrfmiddlewaretoken不存在'))
-        # print(post_dict)
-        # < dict_itemiterator object at 0x00000000052D83B8 >
-        # ('9', '2')
-        # ('10', '9')
         # ('csrfmiddlewaretoken', '89nyHBjPea8RwMD3RlXdQuGXrrsUPeFpiqJQHsRg5G5usWZFYOtnCsY24WuXmeLC')
-        if post_dict:   # 字典不为空
+        if post_dict:  # 字典不为空
             for order_item in post_dict.items():
                 # print(type(order_item[0]), type(order_item[1]))  # <class 'str'> <class 'str'>
                 product_id = order_item[0]
                 product_quantity = order_item[1]
                 # 判断是否都是正整数，如果有不是的，返回错误信息
-                if product_id.isdigit() and product_quantity.isdigit():  # 都是数字
-                    pass
+                if product_id.isdigit() and product_quantity.isdigit():  # 都是数字，
+                    # if product_quantity != '0':   # 去掉为0的数字
+                    #     clean_dict[product_id] = product_quantity
+                    clean_dict[product_id] = product_quantity
                 else:  # 有一个不是数字
                     error_msg = '产品id： ' + product_id + '。  数量：' + product_quantity + ' 中有一个不是数字。'
                     break
         else:
             error_msg = '产品为空'
-        if error_msg:  # 如果有不是数字的情况
+
+        if error_msg:  # 如果有错误，返回错误信息
             return render(request, 'orders/order/last_order.html',
                           {'last_order_items': last_order_items, 'user_permissions': user_permissions,
                            'error_msg': error_msg})
-        else:   # 检查通过，创建订单
+        else:  # 没有错误，创建订单
             total_cost = 0.13
             order = Order.objects.create(user=user_pro, total_cost=total_cost,
                                          description=description)  # 创建订单
-            for product_id, product_quantity in post_dict.items():
+            for product_id, product_quantity in clean_dict.items():
                 product = Product.objects.get(id=int(product_id))
                 OrderItem.objects.create(order=order,
                                          product=product,
@@ -181,4 +182,5 @@ def last_order(request):
             return redirect(reverse('orders:order_created', kwargs={'order_id': order.id}))
 
     return render(request, 'orders/order/last_order.html',
-                  {'last_order_items': last_order_items, 'user_permissions': user_permissions, 'error_msg': error_msg})
+                  {'last_order_items': last_order_items, 'description': description,
+                   'user_permissions': user_permissions, 'error_msg': error_msg})
