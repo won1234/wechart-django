@@ -19,8 +19,10 @@
         <li {% if request.path|slice:"5" == '/cart' %}class="selected"{% endif %}>
         <a href="{% url 'cart:cart_detail' %}">购物车</a>
         </li>
-        <li {% if request.path|slice:"6" == '/order' %}class="selected"{% endif %}>
+        <li {% if request.path|slice:"18" == '/orders/order_list' %}class="selected"{% endif %}>
         <a href="{% url 'orders:order_list' %}">我的订单</a>
+        <li {% if request.path|slice:"18" == '/orders/last_order' %}class="selected"{% endif %}>
+        <a href="{% url 'orders:last_order' %}">快速下单</a>
         </li>
         <li {% if request.path|slice:"5" == '/help' %}class="selected"{% endif %}>
         <a href="{% url 'help:help_list' %}">帮助</a>

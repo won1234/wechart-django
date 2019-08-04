@@ -5,7 +5,7 @@ from cart.cart import Cart
 from .tasks import order_created
 from django.contrib.auth.decorators import login_required  # 认证（authentication）框架的login_required装饰器
 from login.models import Profile
-from django.contrib.auth.models import User    # 内置的用户model
+from django.contrib.auth.models import User  # 内置的用户model
 from .models import Order
 from mall.models import Product, Category
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -42,6 +42,7 @@ def order_create(request):
     return render(request,
                   'orders/order/create.html',
                   {'cart': cart, 'user_profile': user_profile, 'user_permissions': user_permissions})
+
 
 # 订单创建成功页面
 @login_required
@@ -103,7 +104,8 @@ def admin_create_order(request):
                         num = int(i[2:])
                         items.append((name_obj_dic[name_2], num))
                 except Exception as e:
-                    return render(request, 'orders/order/admin_create_order.html', {'form': form, 'error': e, 'products': name_str})
+                    return render(request, 'orders/order/admin_create_order.html',
+                                  {'form': form, 'error': e, 'products': name_str})
                 else:  # 如果字符串有效，创建订单
                     user_profile = Profile.objects.get(id=user_profile_id)  # 取得用户
                     description = '管理员代下单'
@@ -123,3 +125,60 @@ def admin_create_order(request):
         else:
             form = AdminCreateOrder()  # 当为一个GET时，返回一个空Form
         return render(request, 'orders/order/admin_create_order.html', {'form': form})
+
+
+# 展示用户的上次订单，可以直接修改数量，并提交（有提交权限）。
+@login_required
+def last_order(request):
+    # 取得上次订单
+    user_pro = Profile.objects.get(user=User.objects.get(username=request.user.username))  # 当前用户的扩展信息
+    user_permissions = user_pro.group2.all()  # 用户的权限
+    last_orders = Order.objects.filter(user=user_pro).order_by('-created')  # 取得上次时间最近的订单
+    error_msg = ''
+    if last_orders:
+        last_order = last_orders[0]
+        last_order_items = OrderItem.objects.filter(order=last_order)
+    else:
+        last_order_items = None
+    if request.method == 'POST':  # 点击提交时，取得产品id和数量。
+        post_dict = request.POST.dict()
+        post_dict.pop('csrfmiddlewaretoken')
+        description = post_dict.pop('description')
+        # print(post_dict.pop('csrfmiddlewaretoken', 'csrfmiddlewaretoken不存在'))
+        # print(post_dict)
+        # < dict_itemiterator object at 0x00000000052D83B8 >
+        # ('9', '2')
+        # ('10', '9')
+        # ('csrfmiddlewaretoken', '89nyHBjPea8RwMD3RlXdQuGXrrsUPeFpiqJQHsRg5G5usWZFYOtnCsY24WuXmeLC')
+        if post_dict:   # 字典不为空
+            for order_item in post_dict.items():
+                # print(type(order_item[0]), type(order_item[1]))  # <class 'str'> <class 'str'>
+                product_id = order_item[0]
+                product_quantity = order_item[1]
+                # 判断是否都是正整数，如果有不是的，返回错误信息
+                if product_id.isdigit() and product_quantity.isdigit():  # 都是数字
+                    pass
+                else:  # 有一个不是数字
+                    error_msg = '产品id： ' + product_id + '。  数量：' + product_quantity + ' 中有一个不是数字。'
+                    break
+        else:
+            error_msg = '产品为空'
+        if error_msg:  # 如果有不是数字的情况
+            return render(request, 'orders/order/last_order.html',
+                          {'last_order_items': last_order_items, 'user_permissions': user_permissions,
+                           'error_msg': error_msg})
+        else:   # 检查通过，创建订单
+            total_cost = 0.13
+            order = Order.objects.create(user=user_pro, total_cost=total_cost,
+                                         description=description)  # 创建订单
+            for product_id, product_quantity in post_dict.items():
+                product = Product.objects.get(id=int(product_id))
+                OrderItem.objects.create(order=order,
+                                         product=product,
+                                         price=product.price,
+                                         quantity=int(product_quantity))
+            order_created.delay(user_pro.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
+            return redirect(reverse('orders:order_created', kwargs={'order_id': order.id}))
+
+    return render(request, 'orders/order/last_order.html',
+                  {'last_order_items': last_order_items, 'user_permissions': user_permissions, 'error_msg': error_msg})
