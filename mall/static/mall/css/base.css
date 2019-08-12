@@ -229,6 +229,24 @@ ul.errorlist {
     overflow:hidden;
 }
 
+.manager_table {
+    border:thin solid red;
+    width:auto;
+}
+.manager_table caption{
+    font-size:28px;
+}
+.manager_table td{
+    font-size:14px;
+    border:thin solid black;
+    padding: 5px;
+}
+.manager_table th{
+    font-size:14px;
+    border:thin solid black;
+    padding: 5px;
+}
+
 .product-list .item {
     font-size: 35px;
     width:25%;

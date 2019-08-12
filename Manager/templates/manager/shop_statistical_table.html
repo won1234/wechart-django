@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>店铺统计表</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static 'mall/css/phone_base.css' %}" media="screen and (max-device-width: 480px)">
+    <link rel="stylesheet" href="{% static 'mall/css/base.css' %}" media="screen and (min-device-width: 481px)">
+    <script src="https://code.highcharts.com.cn/highcharts/highcharts.js"></script>
+    <script src="https://code.highcharts.com.cn/highcharts/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com.cn/highcharts/modules/oldie.js"></script>
+    <script src="https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js"></script>
+</head>
+<body>
+<div id="header">
+    <span class="logo">越香包</span>
+    <span class="user">
+               {% if request.user.is_authenticated %}
+                <!--  显示用户名  -->
+                 {{ request.user.first_name }}/
+                 <a href="{% url 'change_password' %}">修改密码 / </a>
+                 <a href="{% url 'logout' %}">登出 / </a>
+        {% else %}
+                 <a href="{% url 'login' %}">登录</a>
+        {% endif %}
+    </span>
+</div>
+<div id="content">
+    {% load manager_filters %}
+    <!-- 过滤   -->
+    {% if request.user.is_authenticated %}
+    <div id="order_filter">
+        <form action="{% url 'manager:shop_statistical_table' %}" method="POST">
+            {{ form }}
+            {% csrf_token %}
+            <input type="submit" value="确定">
+        </form>
+    </div>
+    <p style="color: red;">查询全部时请选择时间</p>
+    {% endif %}
+    <!--    当用户为全部时-->
+{% if user_all %}
+    <!--    用户金额占比图-->
+    <div id="container3" style="min-width:400px;height:400px;"></div>
+    <script>
+        Highcharts.chart('container3', {
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            type: 'pie'
+        },
+        title: {
+            text: '用户金额占比'
+        },
+        subtitle: {
+            text: '{{ start_date|date:"m月d日" }}- {{ end_date|date:"m月d日" }} '
+        },
+        tooltip: {
+            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        plotOptions: {
+            pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                    style: {
+                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                    }
+                }
+            }
+        },
+        series: [{
+            name: 'Brands',
+            colorByPoint: true,
+            data: [ {% for user,user_dic in users_orders_total_dic.items %}{
+                name: '{{ user }}',
+                y: {{ user_dic.cost }}
+              },
+               {% endfor %}
+               ]
+        }]
+    });
+    </script>
+<!--    用户金额柱状图-->
+    <div id="container5" style="min-width:400px;height:400px;"></div>
+    <script>
+        var chart = Highcharts.chart('container5', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: '用户金额'
+        },
+        subtitle: {
+            text: '{{ start_date|date:"m月d日" }}- {{ end_date|date:"m月d日" }}'
+        },
+        xAxis: {
+            type: 'category',
+            labels: {
+                rotation: -45  // 设置轴标签旋转角度
+            }
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: '金额 (元)'
+            }
+        },
+        legend: {
+            enabled: false
+        },
+        tooltip: {
+            pointFormat: '金额: <b>{point.y:.2f} 元</b>'
+        },
+        series: [{
+            name: '用户金额',
+            data: [
+                {% for user,user_dic in users_orders_total_dic.items %}
+                ['{{ user }}', {{ user_dic.cost }}],
+                {% endfor %}
+            ],
+            dataLabels: {
+                enabled: true,
+                rotation: -90,
+                color: '#FFFFFF',
+                align: 'right',
+                format: '{point.y:.2f}', // :.1f 为保留 1 位小数
+                y: 10
+            }
+        }]
+    });
+    </script>
+<!--    用户金额表-->
+    <div>
+        <table class="manager_table">
+            <caption>用户金额表</caption>
+            <caption>{{ start_date|date:"m-d" }}到{{ end_date|date:"m-d" }}</caption>
+            <tr>
+                <th>用户</th>
+                <th>订单数</th>
+                <th>金额</th>
+            </tr>
+            {% for user,user_dic in users_orders_total_dic.items %}
+            <tr>
+                <td>{{ user }}</td>
+                <td>{{ user_dic.orders_num }}</td>
+                <td>￥{{ user_dic.cost }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <h1>总金额：￥{{ total_cost }}</h1>
+    </div>
+<!--    材料金额占比图-->
+    <div id="container4" style="height:400px"></div>
+    <script>
+        Highcharts.chart('container4', {
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            type: 'pie'
+        },
+        title: {
+            text: '材料金额占比'
+        },
+        subtitle: {
+            text: '{{ start_date|date:"m月d日" }}- {{ end_date|date:"m月d日" }} '
+        },
+        tooltip: {
+            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        plotOptions: {
+            pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                    style: {
+                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                    }
+                }
+            }
+        },
+        series: [{
+            name: 'Brands',
+            colorByPoint: true,
+            data: [ {% for product,product_dic in products_total_dic.items %}{
+                name: '{{ product }}',
+                y: {{ product_dic.cost }}
+              },
+               {% endfor %}
+               ]
+        }]
+    });
+    </script>
+<!--    材料金额柱状图 -->
+    <div id="container6" style="min-width:400px;height:400px;"></div>
+    <script>
+        var chart = Highcharts.chart('container6', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: '材料金额'
+        },
+        subtitle: {
+            text: '{{ start_date|date:"m月d日" }}- {{ end_date|date:"m月d日" }}'
+        },
+        xAxis: {
+            type: 'category',
+            labels: {
+                rotation: -45  // 设置轴标签旋转角度
+            }
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: '金额 (元)'
+            }
+        },
+        legend: {
+            enabled: false
+        },
+        tooltip: {
+            pointFormat: '金额: <b>{point.y:.2f} 元</b>'
+        },
+        series: [{
+            name: '材料金额',
+            data: [
+                {% for product,product_dic in products_total_dic.items %}
+                ['{{ product }}', {{ product_dic.cost }}],
+                {% endfor %}
+            ],
+            dataLabels: {
+                enabled: true,
+                rotation: -90,
+                color: '#FFFFFF',
+                align: 'right',
+                format: '{point.y:.2f}', // :.1f 为保留 1 位小数
+                y: 10
+            }
+        }]
+    });
+    </script>
+<!--    材料金额表-->
+    <div>
+        <table class="manager_table">
+            <caption>材料金额表</caption>
+            <caption>{{ start_date|date:"m-d" }}到{{ end_date|date:"m-d" }}</caption>
+            <tr>
+                <th>材料</th>
+                <th>数量</th>
+                <th>金额</th>
+            </tr>
+            {% for product,product_dic in products_total_dic.items %}
+            <tr>
+                <td>{{ product }}</td>
+                <td>{{ product_dic.num }}</td>
+                <td>￥{{ product_dic.cost }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% else %}
+    <div id="shop_statistical">
+        <table class="manager_table">
+            <caption>{{ user_name }}</caption>
+            <tr>
+                <th>产品</th>
+                {% for product in products_list_sorted %}
+                <th>{{ product.name }}</th>
+                {% endfor %}
+            </tr>
+            <tr>
+                <th>最新单价</th>
+                {% for product in products_list_sorted %}
+                <th>￥{{ product.price }}</th>
+                {% endfor %}
+                <th>每日金额</th>
+            </tr>
+            {% for date in date_all_sort %}
+            <tr>
+                <td>{{ date|date:"m月d日" }}</td>
+                {% for product in products_list_sorted %}
+                <td>{{ date_products_dic|get_value_dic:date|get_value:product }}</td>
+                {% endfor %}
+                <th>￥{{ date_products_dic|get_value_dic:date|get_value:'day_cost' }}</th>
+            </tr>
+            {% endfor %}
+            <tr>
+                <th>总数量</th>
+                {% for product in products_list_sorted %}
+                <th>{{ product_quantitys_dic|get_value:product }}</th>
+                {% endfor %}
+            </tr>
+            <tr>
+                <th>金额</th>
+                {% for product in products_list_sorted %}
+                <th>￥{{ product_cost_dic|get_value:product }}</th>
+                {% endfor %}
+            </tr>
+        </table>
+        <h2>总金额：{{ total_cost }}</h2>
+        <p style="color: red;">注：显示的单价为最新单价，统计的金额根据下单时的单价进行计算。</p>
+    </div>
+<!--    每天金额折线图-->
+    <div id="container2" style="min-width:400px;height:400px"></div>
+    <script language="JavaScript">
+        var chart = Highcharts.chart('container2', {
+        chart: {
+            type: 'line'
+        },
+        title: {
+            text: '{{ user_name }}'
+        },
+        subtitle: {
+            text: '{{ date_all_sort.0|date:"m月d日" }}- {{ date_all_sort|last|date:"m月d日" }} 每日金额'
+        },
+        xAxis: {
+            categories: [{% for date in date_all_sort %}'{{ date|date:"y年m月d日" }}',{% endfor %}]
+        },
+        yAxis: {
+            title: {
+                text: '金额 (元)'
+            }
+        },
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    // 开启数据标签
+                    enabled: true,
+                    // 显示小数点后2位
+                    format: '{point.y:.2f}',
+                },
+                // 关闭鼠标跟踪，对应的提示框、点击事件会失效
+                enableMouseTracking: false
+            }
+        },
+        series: [
+        {
+            name: '{{ user_name }}每日金额',
+            data: [{% for date in date_all_sort %}{{ date_products_dic|get_value_dic:date|get_value:'day_cost' }},{% endfor %}]
+        }]
+    });
+    </script>
+<!--    产品数量折线图-->
+    <div id="container" style="min-width:400px;height:400px"></div>
+    <script language="JavaScript">
+        var chart = Highcharts.chart('container', {
+        chart: {
+            type: 'line'
+        },
+        title: {
+            text: '{{ user_name }}'
+        },
+        subtitle: {
+            text: '{{ date_all_sort.0|date:"m月d日" }}- {{ date_all_sort|last|date:"m月d日" }} 产品每日数量'
+        },
+        xAxis: {
+            categories: [{% for date in date_all_sort %}'{{ date|date:"y年m月d日" }}',{% endfor %}]
+        },
+        yAxis: {
+            title: {
+                text: '数量'
+            }
+        },
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    // 开启数据标签
+                    enabled: true
+                },
+                // 关闭鼠标跟踪，对应的提示框、点击事件会失效
+                enableMouseTracking: false
+            }
+        },
+        series: [
+        {% for product in products_list_sorted %}
+        {
+            name: '{{ product.name }}',
+            data: [{% for date in date_all_sort %}{{  date_products_dic|get_value_dic:date|get_value:product }},{% endfor %}]
+        },
+        {% endfor %}]
+    });
+    </script>
+{% endif %}
+</div>
+</body>
+</html>
+
