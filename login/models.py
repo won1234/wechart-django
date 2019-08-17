@@ -62,12 +62,12 @@ class Profile(models.Model):
     price_group = models.ForeignKey(ProductPriceGroup, null=True, blank=True, on_delete=models.SET_NULL,
                                     related_name='price_group',
                                     verbose_name='价格组')
-    # department = models.ForeignKey(Department, on_delete=models.SET_NULL,
-    #                                related_name='department',
-    #                                verbose_name='部门')
     group2 = models.ManyToManyField(Group2,
                                     related_name='group2',
                                     verbose_name='权限')
+    department = models.ForeignKey(Department, null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name='department',
+                                   verbose_name='部门')
 
     class Meta:
         ordering = ('user',)

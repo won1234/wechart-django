@@ -1,13 +1,14 @@
 from django.contrib import admin
-from .models import Profile, WechatTag, Group2, NoPayDate
+from .models import Profile, WechatTag, Group2, NoPayDate, Department
 
 
 # from django.contrib.auth.models import User
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'user_name_p', 'address', 'price_group', 'mobile', 'wechat_name']
+    list_display = ['user', 'user_name_p', 'address', 'department', 'price_group', 'mobile', 'wechat_name']
     search_fields = ('user__username', 'user__first_name')
+    list_filter = ['department']
 
 
 admin.site.register(Profile, ProfileAdmin)
@@ -45,3 +46,11 @@ class NoPayDateAdmin(admin.ModelAdmin):
 
 
 admin.site.register(NoPayDate, NoPayDateAdmin)
+
+
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'number']
+    ordering = ('number',)
+
+
+admin.site.register(Department, DepartmentAdmin)
