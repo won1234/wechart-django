@@ -36,7 +36,7 @@
             <input type="submit" value="确定">
         </form>
     </div>
-    <p style="color: red;">查询全部时请选择时间</p>
+    <p style="color: red;">不选时间展示最近15天</p>
     {% endif %}
     <!--    当用户为全部时-->
 {% if user_all %}
@@ -265,7 +265,15 @@
             {% endfor %}
         </table>
     </div>
+<!-- 当用户不为全部时   -->
 {% else %}
+    <div style="color: #5993bb;font-size:20px;font-weight:bold;">
+        {% if is_send == 1 %}<em style="color: #00FF00;">已发货，</em>{% elif is_send == 2 %}<strong style="color: #FF0000;">未发货，</strong>{% endif %}
+        {% if is_paid == 1 %}<em style="color: #00FF00;">已支付，</em>{% elif is_paid == 2 %}<strong style="color: #FF0000;">未支付，</strong>{% endif %}
+        订单统计 </div>
+
+
+<!--    店铺订单统计表-->
     <div id="shop_statistical">
         <table class="manager_table">
             <caption>{{ user_name }}</caption>

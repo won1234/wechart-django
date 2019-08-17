@@ -321,7 +321,7 @@ def orders_today(request):
                    'products_total': products_total_list})
 
 
-# 展示一个店铺，一段时间，默认为最近的15天的表和折线图。
+# 展示一段时间，表和折线图。店铺和全部的统计。不选时间，默认为最近15天。
 @login_required
 def shop_statistical_table(request):
     if request.method == 'POST':  # 点击提交时，取得用户profile的id和日期。
@@ -333,11 +333,14 @@ def shop_statistical_table(request):
             # is_paid = ((0, '全部'), (1, '已支付'), (2, '未支付'))
             # is_send = ((0, '全部'), (1, '已发货'), (2, '未发货'))
             # print(cd['user'], type(cd['user']))  # 0 <class 'int'>
+            if not cd['created_start']:  # 如果提交的开始时间为空时,开始时间为当前时间-15天
+                cd['created_start'] = datetime.today() - timedelta(days=15)
+            if not cd['created_end']:   # 如果结束时间为空，则为当前时间
+                cd['created_end'] = datetime.today()
             if cd['user']:  # 用户不为全部时
                 user_all = False
                 # 传入条件，创建查询数据库的实例
-                orders_sql = SqlFilter(user=cd['user'], created_start=cd['created_start'],
-                                       created_end=cd['created_end'])
+                orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
                 # 查询数据，取得的是个列表 ，[（order,order_items）,...]列表+元组形式返回订单和清单数据
                 orders_items_list = orders_sql.orders_items()
                 user_name = orders_sql.user
@@ -388,7 +391,8 @@ def shop_statistical_table(request):
                               {'date_products_dic': date_products_dic, 'product_quantitys_dic': product_quantitys_dic,
                                'product_cost_dic': product_cost_dic, 'products_list_sorted': products_list_sorted,
                                'form': form, 'user_name': user_name, 'total_cost': total_cost,
-                               'date_all_sort': date_all_sort, 'user_all': user_all})
+                               'date_all_sort': date_all_sort, 'user_all': user_all,
+                               'is_paid': cd['paid'], 'is_send': cd['send']})
 
             else:  # 用户为全部时
                 # print(cd['created_start'], cd['created_end'])

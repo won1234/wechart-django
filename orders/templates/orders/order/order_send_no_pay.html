@@ -1,0 +1,52 @@
+{% extends "mall/base.html" %}
+
+{% block title %}
+待支付订单
+{% endblock %}
+
+{% block content %}
+{% load manager_filters %}
+<!--    用户金额表-->
+<div>
+    <table class="manager_table">
+        <caption>已发货未支付统计表</caption>
+        <tr>
+            <th>产品</th>
+            {% for product in products_list_sorted %}
+            <th>{{ product.name }}</th>
+            {% endfor %}
+            <th>每日金额</th>
+        </tr>
+        <tr>
+            <th>最新单价</th>
+            {% for product in products_list_sorted %}
+            <th>￥{{ product.price }}</th>
+            {% endfor %}
+            <th></th>
+        </tr>
+        {% for date in date_list_sorted %}
+        <tr>
+            <td>{{ date|date:"m月d日" }}</td>
+            {% for product in products_list_sorted %}
+            <td>{{ date_products_dic|get_value_dic:date|get_value:product }}</td>
+            {% endfor %}
+            <th>￥{{ date_products_dic|get_value_dic:date|get_value:'day_cost' }}</th>
+        </tr>
+        {% endfor %}
+        <tr>
+            <th>总数量</th>
+            {% for product in products_list_sorted %}
+            <th>{{ product_quantitys_dic|get_value:product }}</th>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th>金额</th>
+            {% for product in products_list_sorted %}
+            <th>￥{{ product_cost_dic|get_value:product }}</th>
+            {% endfor %}
+        </tr>
+    </table>
+    <h2>总金额：{{ total_cost }}</h2>
+    <p style="color: red;">注：显示的单价为最新单价，统计的金额根据下单时的单价进行计算。</p>
+</div>
+{% endblock %}

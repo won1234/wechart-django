@@ -9,6 +9,7 @@ from django.contrib.auth.models import User  # 内置的用户model
 from .models import Order
 from mall.models import Product, Category
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from datetime import datetime
 
 
 # 创建订单
@@ -50,12 +51,13 @@ def order_created_view(request, order_id):
     return render(request, 'orders/order/created.html', {'order_id': order_id})
 
 
+# 我的订单
 @login_required
 def order_list(request):
     # 获取当前用户
     user_pro = Profile.objects.get(user=User.objects.get(username=request.user.username))  # 当前用户的扩展信息
     orders_list = Order.objects.filter(user=user_pro)  # 取得用户的所有订单
-    orders_no_pay = Order.objects.filter(user=user_pro).filter(paid=False)  # 未支付的订单
+    orders_no_pay = Order.objects.filter(user=user_pro).filter(paid=False).filter(send=True)  # 已发货，未支付的订单
     no_pay_order_id = ''
     no_pay_total = 0
     for order_no_pay in orders_no_pay:
@@ -78,6 +80,46 @@ def order_list(request):
         order_items[order] = OrderItem.objects.filter(order=order)
     return render(request, 'orders/order/order_list.html',
                   {'orders': orders, 'order_items': order_items, 'no_pay_dic': no_pay_dic})
+
+
+# 个人已发货未支付订单报表页。
+@login_required
+def order_send_no_pay(request):
+    # 获取当前用户
+    user_pro = Profile.objects.get(user=User.objects.get(username=request.user.username))  # 当前用户的扩展信息
+    orders_order_send_no_pay = Order.objects.filter(user=user_pro).filter(paid=False).filter(send=True)  # 已发货，未支付的订单
+    total_cost = 0   # 总金额
+    date_products_dic = {}  # {date:{product：数量,..,'day_cost':0},...}
+    product_quantitys_dic = {}   # ｛product:数量,...｝ # 所有产品数量
+    product_cost_dic = {}  # ｛product:金额,...｝ # 所有产品金额
+    product_set = set()  # 产品集合
+    date_set = set()  # 日期集合
+    for order in orders_order_send_no_pay:
+        order_created = order.created
+        order_created_day = datetime(order_created.year, order_created.month, order_created.day)
+        date_set.add(order_created_day)
+        total_cost = total_cost + order.get_total_cost()  # 总金额
+        date_dic = date_products_dic.get(order_created_day, {'day_cost': 0})  # 一天的数量
+        date_dic['day_cost'] = date_dic['day_cost'] + order.get_total_cost()
+        # 取得order_item
+        order_items = OrderItem.objects.filter(order=order)
+        for order_item in order_items:
+            product = order_item.product
+            price = order_item.price
+            quantity = order_item.quantity
+            product_set.add(product)
+            date_dic[product] = date_dic.get(product, 0) + quantity  # 产品数量
+            product_quantitys_dic[product] = product_quantitys_dic.get(product, 0) + quantity  # 所有产品数量
+            product_cost_dic[product] = product_cost_dic.get(product, 0) + quantity * price  # 所有产品金额
+        date_products_dic[order_created_day] = date_dic
+    products_list_sorted = sorted(list(product_set), key=lambda x: x.id)
+    date_list_sorted = sorted(list(date_set))
+    return render(request, 'orders/order/order_send_no_pay.html',
+                  {'products_list_sorted': products_list_sorted, 'date_list_sorted': date_list_sorted,
+                   'date_products_dic': date_products_dic,
+                   'product_cost_dic': product_cost_dic,
+                   'product_quantitys_dic': product_quantitys_dic,
+                   'total_cost': total_cost})
 
 
 # 管理员创建订单，选择用户，分析字符串，根据前两个字匹配产品名称。

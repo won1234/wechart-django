@@ -41,6 +41,18 @@ class NoPayDate(models.Model):
         return str(self.name)
 
 
+# 部门
+class Department(models.Model):
+    name = models.CharField(max_length=25, verbose_name="部门名称")
+    number = models.IntegerField(unique=True, verbose_name="部门编号")  # unique=True不重复
+
+    class Meta:
+        verbose_name_plural = '部门'
+
+    def __str__(self):
+        return str(self.name)
+
+
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)  # 和系统的user model一对一
     address = models.CharField(max_length=250, verbose_name="地址")
@@ -50,6 +62,9 @@ class Profile(models.Model):
     price_group = models.ForeignKey(ProductPriceGroup, null=True, blank=True, on_delete=models.SET_NULL,
                                     related_name='price_group',
                                     verbose_name='价格组')
+    # department = models.ForeignKey(Department, on_delete=models.SET_NULL,
+    #                                related_name='department',
+    #                                verbose_name='部门')
     group2 = models.ManyToManyField(Group2,
                                     related_name='group2',
                                     verbose_name='权限')
