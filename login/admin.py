@@ -1,12 +1,12 @@
 from django.contrib import admin
-from .models import Profile, WechatTag, Group2, NoPayDate, Department
+from .models import Profile, WechatTag, Group2, NoPayDate, Department, Freight
 
 
 # from django.contrib.auth.models import User
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'user_name_p', 'address', 'department', 'price_group', 'mobile', 'wechat_name']
+    list_display = ['user', 'user_name_p', 'address', 'department', 'freight', 'price_group', 'mobile', 'wechat_name']
     search_fields = ('user__username', 'user__first_name')
     list_filter = ['department']
 
@@ -54,3 +54,10 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Department, DepartmentAdmin)
+
+
+class FreightAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'price']
+
+
+admin.site.register(Freight, FreightAdmin)

@@ -1,16 +1,29 @@
 from django.shortcuts import render, reverse, redirect
-from .models import OrderItem
 from .forms import AdminCreateOrder
 from cart.cart import Cart
 from .tasks import order_created
 from django.contrib.auth.decorators import login_required  # 认证（authentication）框架的login_required装饰器
 from login.models import Profile
 from django.contrib.auth.models import User  # 内置的用户model
-from .models import Order
+from .models import Order, OrderItem
 from mall.models import Product, Category
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from datetime import datetime
 
+
+# 订单添加运费item
+def order_add_freight(order):
+    # 取得运费product
+    product = Product.objects.get(id=32)
+    freight = order.user.freight
+    if not freight:   # 为空时
+        price = 0
+    else:
+        price = freight.price
+    OrderItem.objects.create(order=order,
+                             product=product,
+                             price=price,
+                             quantity=1)
 
 # 创建订单
 @login_required
@@ -32,6 +45,8 @@ def order_create(request):
                                      product=item['product'],
                                      price=item['price'],
                                      quantity=item['quantity'])
+        order_add_freight(order)   # 添加运费
+
         # 清空购物车
         cart.clear()
         order_created.delay(user_profile.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
@@ -159,6 +174,7 @@ def admin_create_order(request):
                                                  product=product,
                                                  price=product.price,
                                                  quantity=quantity)
+                    order_add_freight(order)   # 添加运费
                     order_created.delay(user_profile.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
                     # form = AdminCreateOrder()  # 创建成功则清空内容
                     # return render(request, 'orders/order/admin_create_order.html', {'form': form, 'error': str(order) + '下单成功'})

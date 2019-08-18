@@ -2,7 +2,8 @@ from django import forms
 from .models import Order
 from login.models import Profile
 
-USERS = Profile.objects.all()  # 取得所有用户
+# USERS = Profile.objects.filter(department =)  # 取得金华配送用户
+USERS = Profile.objects.all()
 USERS_list = []
 for i in USERS:  # 取得所有用户，形成[(id, name), ...] 元组加列表的样式
     user = i.user

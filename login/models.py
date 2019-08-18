@@ -66,7 +66,7 @@ class Freight(models.Model):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)  # 和系统的user model一对一
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, verbose_name='用户名')   # 和系统的user model一对一
     address = models.CharField(max_length=250, verbose_name="地址")
     mobile = models.CharField(max_length=11, null=True, blank=True, verbose_name='手机号')
     wechat_name = models.CharField(max_length=25, null=True, blank=True, verbose_name="企业号个人账号")
@@ -85,7 +85,7 @@ class Profile(models.Model):
                                 verbose_name='运费')
 
     class Meta:
-        ordering = ('user',)
+        ordering = ('department',)
         verbose_name = 'profile'
         verbose_name_plural = '用户2'
 
