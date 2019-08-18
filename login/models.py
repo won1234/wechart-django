@@ -53,6 +53,18 @@ class Department(models.Model):
         return str(self.name)
 
 
+# 运费
+class Freight(models.Model):
+    name = models.CharField(max_length=25, verbose_name="运费")
+    price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='单价')  # 价格
+
+    class Meta:
+        verbose_name_plural = '运费'
+
+    def __str__(self):
+        return str(self.name)
+
+
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)  # 和系统的user model一对一
     address = models.CharField(max_length=250, verbose_name="地址")
@@ -68,6 +80,9 @@ class Profile(models.Model):
     department = models.ForeignKey(Department, null=True, blank=True, on_delete=models.SET_NULL,
                                    related_name='department',
                                    verbose_name='部门')
+    # freight = models.ForeignKey(Freight, null=True, blank=True, on_delete=models.SET_NULL,
+    #                             related_name='freight',
+    #                             verbose_name='运费')
 
     class Meta:
         ordering = ('user',)
