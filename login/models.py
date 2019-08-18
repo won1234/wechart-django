@@ -80,9 +80,9 @@ class Profile(models.Model):
     department = models.ForeignKey(Department, null=True, blank=True, on_delete=models.SET_NULL,
                                    related_name='department',
                                    verbose_name='部门')
-    # freight = models.ForeignKey(Freight, null=True, blank=True, on_delete=models.SET_NULL,
-    #                             related_name='freight',
-    #                             verbose_name='运费')
+    freight = models.ForeignKey(Freight, null=True, blank=True, on_delete=models.SET_NULL,
+                                related_name='freight',
+                                verbose_name='运费')
 
     class Meta:
         ordering = ('user',)
