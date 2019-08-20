@@ -110,18 +110,27 @@ class SqlFilter(object):
                                                    'cost': quantity * price}
         return products_total_dic
 
-    # 返回每个用户的统计字典{user: {'orders':[（order,order_items),...], 'products_list_sorted':[],'orders_num': , 'cost': },...}
+    # 返回每个用户的统计字典{user: {'orders':[], 'products_set'{},'orders_num': , 'cost': },...}
+    # 'orders':[(order, order_items),....]
     def user_orders_total(self):
-        users_orders_total_dic = {}
+        users_orders_dic = {}
         for order, order_items in self.orders_items():
-            user_profile = order.user
-            user_orders_total_dic = users_orders_total_dic.get(user_profile, {'orders': [], 'orders_num': 0,
-                                                                              'cost': 0})  # 用户还不存在，初始化，如果存在进行赋值
-            user_orders_total_dic['orders'].append((order, order_items))
-            user_orders_total_dic['orders_num'] = user_orders_total_dic['orders_num'] + 1
-            user_orders_total_dic['cost'] = user_orders_total_dic['cost'] + order.get_total_cost()
-            users_orders_total_dic[user_profile] = user_orders_total_dic
-        return users_orders_total_dic
+            user_profile = order.user  # 用户
+            user_orders_dic = users_orders_dic.get(user_profile,
+                                                           {'orders': [], 'products_set': set(), 'orders_num': 0,
+                                                            'cost': 0})  # 用户还不存在，初始化，如果存在进行赋值
+            user_orders_dic['orders_num'] = user_orders_dic['orders_num'] + 1
+            user_orders_dic['cost'] = user_orders_dic['cost'] + order.get_total_cost()
+            user_orders_dic['orders'].append((order, order_items))
+            # product_set
+            product_set = user_orders_dic['products_set']
+            for item in order_items:
+                product = item.product
+                product_set.add(product)
+            user_orders_dic['products_set'] = product_set
+
+            users_orders_dic[user_profile] = user_orders_dic
+        return users_orders_dic
 
 
 # 导出CSV功能
@@ -314,8 +323,8 @@ def orders_today(request):
     orders_items_list = orders_sql.orders_items()
     # 订单统计
     products_total = orders_sql.products_total()
-    # 根据产品id对字典进行排序，返回一个列表
-    products_total_list = sorted(products_total.items(), key=lambda x: x[0].id)
+    # 根据产品序号对字典进行排序，返回一个列表
+    products_total_list = sorted(products_total.items(), key=lambda x: x[0].number)
     return render(request, 'manager/orders_today.html',
                   {'orders_items_list': orders_items_list, 'today_datetime': today_datetime,
                    'products_total': products_total_list})
@@ -333,10 +342,14 @@ def shop_statistical_table(request):
             # is_paid = ((0, '全部'), (1, '已支付'), (2, '未支付'))
             # is_send = ((0, '全部'), (1, '已发货'), (2, '未发货'))
             # print(cd['user'], type(cd['user']))  # 0 <class 'int'>
+            datetime_now = datetime.today()
+            year = datetime_now.year
+            month = datetime_now.month
+            day = datetime_now.day
             if not cd['created_start']:  # 如果提交的开始时间为空时,开始时间为当前时间-15天
-                cd['created_start'] = datetime.today() - timedelta(days=15)
-            if not cd['created_end']:   # 如果结束时间为空，则为当前时间
-                cd['created_end'] = datetime.today()
+                cd['created_start'] = datetime(year, month, day, 0, 0) - timedelta(days=14)
+            if not cd['created_end']:  # 如果结束时间为空，则为当前时间
+                cd['created_end'] = datetime(year, month, day, 0, 0)
             if cd['user']:  # 用户不为全部时
                 user_all = False
                 # 传入条件，创建查询数据库的实例
@@ -370,7 +383,7 @@ def shop_statistical_table(request):
                         products_set.add(product)  # 把产品添加到集合中
                     date_products_dic[order_created_day] = products_dic
                 products_list = list(products_set)
-                products_list_sorted = sorted(products_list, key=lambda x: x.id)  # 根据产品的id进行排序
+                products_list_sorted = sorted(products_list, key=lambda x: x.number)  # 根据产品的number进行排序
                 total_cost = 0
                 for cost in product_cost_dic.values():
                     total_cost = total_cost + cost
@@ -402,10 +415,44 @@ def shop_statistical_table(request):
                     orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
                     total_cost = orders_sql.num_cost()[1]  # 订单总金额
                     products_total_dic = orders_sql.products_total()  # {product:{'total': , 'num': , 'details': ,'cost':,},....}
-                    users_orders_total_dic = orders_sql.user_orders_total()  # 每个用户统计{user: {'orders':[（order,order_items),...], 'orders_num': , 'cost': },...}
+                    users_orders_dic = orders_sql.user_orders_total()   # 取得数据库中的订单
+
+                    users_products_sorted_dic = {}     # 每个用户产品进行排序字典｛user:[product1,product2,...],...｝
+                    users_dates_sorted_dic = {}         # 用户含有订单的日期进行排序 {user:[date1,date2,...],...}
+                    # {user:{date1:{},date2{}...}     date1:{'day_cost':0,product:0,product:0...}
+                    users_dates_orders_dic = {}         # 每个用户订单根据日期的字典
+
+                    # 每个用户的统计字典{user: {'orders':[], 'products_set':{},'orders_num': , 'cost': },...}
+                    # 'orders':[(order, order_items),....]
+                    for user, user_order_dic in users_orders_dic.items():
+                        products_sorted = sorted(user_order_dic['products_set'], key=lambda x: x.number)
+                        # print(products_sorted)
+                        users_products_sorted_dic[user] = products_sorted
+                        dates_set = set()
+                        date_dic = {}  # {date1:{},date2{}...}
+                        for orders in user_order_dic['orders']:
+                            order = orders[0]
+                            order_items = orders[1]
+                            order_created = order.created
+                            order_created_day = datetime(order_created.year, order_created.month, order_created.day, 0, 0)
+                            dates_set.add(order_created_day)
+                            # {'day_cost':0,product:0,product:0...}
+                            date_cost_products_dic = date_dic.get(order_created_day, {'day_cost': 0})
+                            date_cost_products_dic['day_cost'] = date_cost_products_dic['day_cost'] + order.get_total_cost()
+                            for order_item in order_items:
+                                product = order_item.product
+                                quantity = order_item.quantity
+                                product_quantity = date_cost_products_dic.get(product, 0)    # 已有的数量
+                                date_cost_products_dic[product] = product_quantity + quantity  # 产品数量
+                            date_dic[order_created_day] = date_cost_products_dic
+                        users_dates_orders_dic[user] = date_dic
+                        users_dates_sorted_dic[user] = sorted(list(dates_set))
                     return render(request, 'manager/shop_statistical_table.html',
                                   {'products_total_dic': products_total_dic,
-                                   'users_orders_total_dic': users_orders_total_dic,
+                                   'users_orders_total_dic': users_orders_dic,
+                                   'users_products_sorted_dic': users_products_sorted_dic,
+                                   'users_dates_sorted_dic': users_dates_sorted_dic,
+                                   'users_dates_orders_dic': users_dates_orders_dic,
                                    'form': form, 'total_cost': total_cost,
                                    'start_date': cd['created_start'], 'end_date': cd['created_end'],
                                    'user_all': user_all, 'is_paid': cd['paid'], 'is_send': cd['send']})

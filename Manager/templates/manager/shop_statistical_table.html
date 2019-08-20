@@ -155,14 +155,16 @@
     </div>
     <!-- 每个店铺的表   -->
     <div>
-        {% for user,user_dic in users_orders_total_dic.items %}
+        {% for user,date_products_dic in users_dates_orders_dic.items %}
+        {% with products_list_sorted=users_products_sorted_dic|get_value:user %}
+        {% with date_all_sort=users_dates_sorted_dic|get_value:user %}
         <table class="manager_table">
             <caption>{{ user }}</caption>
-            <div style="color: #5993bb;font-size:20px;font-weight:bold;">
-            {{ start_date|date:"m-d" }}到{{ end_date|date:"m-d" }}
+            <caption>
+            {{ start_date|date:"m月d日" }}到{{ end_date|date:"m月d日" }}
             {% if is_send == 1 %}<em style="color: #00FF00;">已发货  </em>{% elif is_send == 2 %}<strong style="color: #FF0000;">未发货  </strong>{% endif %}
             {% if is_paid == 1 %}<em style="color: #00FF00;"> 已支付</em>{% elif is_paid == 2 %}<strong style="color: #FF0000;"> 未支付</strong>{% endif %}
-            </div>
+            </caption>
             <tr>
                 <th>产品</th>
                 {% for product in products_list_sorted %}
@@ -185,21 +187,11 @@
                 <th>￥{{ date_products_dic|get_value_dic:date|get_value:'day_cost' }}</th>
             </tr>
             {% endfor %}
-            <tr>
-                <th>总数量</th>
-                {% for product in products_list_sorted %}
-                <th>{{ product_quantitys_dic|get_value:product }}</th>
-                {% endfor %}
-            </tr>
-            <tr>
-                <th>金额</th>
-                {% for product in products_list_sorted %}
-                <th>￥{{ product_cost_dic|get_value:product }}</th>
-                {% endfor %}
-            </tr>
         </table>
-        <h2>总金额：{{ total_cost }}</h2>
+        <h2>总金额：{{ users_orders_total_dic|get_value_dic:user|get_value:'cost' }}</h2>
         <p style="color: red;">注：显示的单价为最新单价，统计的金额根据下单时的单价进行计算。</p>
+        {% endwith %}
+        {% endwith %}
         {% endfor %}
     </div>
 <!--    材料金额占比图-->
