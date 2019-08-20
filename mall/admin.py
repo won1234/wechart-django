@@ -3,7 +3,7 @@ from .models import Category, Product, ProductPrice, ProductPriceGroup
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug')
+    list_display = ('name', 'number', 'slug')
     prepopulated_fields = {'slug': ('name',)}
 
 
@@ -11,10 +11,10 @@ admin.site.register(Category, CategoryAdmin)
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'stock',
+    list_display = ('name', 'number', 'price', 'stock',
                     'available', 'created', 'updated', 'category')
-    list_filter = ['available', 'created', 'updated', 'category']
-    list_editable = ('price', 'stock', 'available')
+    list_filter = ['category', 'available', 'created', 'updated']
+    list_editable = ('number', 'price', 'stock', 'available')
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
 

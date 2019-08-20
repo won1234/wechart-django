@@ -110,7 +110,7 @@ class SqlFilter(object):
                                                    'cost': quantity * price}
         return products_total_dic
 
-    # 返回每个用户的统计字典{user: {'orders':[（order,order_items),...], 'orders_num': , 'cost': },...}
+    # 返回每个用户的统计字典{user: {'orders':[（order,order_items),...], 'products_list_sorted':[],'orders_num': , 'cost': },...}
     def user_orders_total(self):
         users_orders_total_dic = {}
         for order, order_items in self.orders_items():
@@ -399,8 +399,7 @@ def shop_statistical_table(request):
                 if cd['created_start'] and cd['created_end']:  # 时间不为空时
                     user_all = True
                     # 传入条件，创建查询数据库的实例
-                    orders_sql = SqlFilter(user=cd['user'], created_start=cd['created_start'],
-                                           created_end=cd['created_end'])
+                    orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
                     total_cost = orders_sql.num_cost()[1]  # 订单总金额
                     products_total_dic = orders_sql.products_total()  # {product:{'total': , 'num': , 'details': ,'cost':,},....}
                     users_orders_total_dic = orders_sql.user_orders_total()  # 每个用户统计{user: {'orders':[（order,order_items),...], 'orders_num': , 'cost': },...}
@@ -409,7 +408,7 @@ def shop_statistical_table(request):
                                    'users_orders_total_dic': users_orders_total_dic,
                                    'form': form, 'total_cost': total_cost,
                                    'start_date': cd['created_start'], 'end_date': cd['created_end'],
-                                   'user_all': user_all})
+                                   'user_all': user_all, 'is_paid': cd['paid'], 'is_send': cd['send']})
 
     form = SelectOrdersForm()
     return render(request, 'manager/shop_statistical_table.html', {'form': form})

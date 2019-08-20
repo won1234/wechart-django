@@ -18,18 +18,18 @@ def product_list(request, category_slug=None):  # 默认为none，全部展示
     #       )
     category = None
     categories = Category.objects.all()  # 取得所有品类
-    categories_sorted = sorted(categories, key=lambda x: x.id)  # 返回的是个列表
+    # categories_sorted = sorted(categories, key=lambda x: x.id)  # 返回的是个列表
     # available=True 的查询集来检索可用的产品
     products = Product.objects.filter(available=True)
     if category_slug:  # 如果category_slug有值传进来， 修改category
         category = get_object_or_404(Category, slug=category_slug)
         products = products.filter(category=category)  # 取得对应的产品
-    products_sorted = sorted(products, key=lambda x: x.id)
+    # products_sorted = sorted(products, key=lambda x: x.id)
     return render(request,
                   'mall/product/list.html',
                   {'category': category,
-                   'categories': categories_sorted,
-                   'products': products_sorted})
+                   'categories': categories,
+                   'products': products})
 
 
 @login_required

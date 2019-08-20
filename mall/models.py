@@ -8,9 +8,10 @@ class Category(models.Model):
     slug = models.SlugField(max_length=200,
                             db_index=True,
                             unique=True)
+    number = models.PositiveIntegerField(verbose_name='序号')  # 正整数
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('number',)
         verbose_name = 'category'
         verbose_name_plural = '品类'
 
@@ -26,6 +27,7 @@ class Category(models.Model):
 class Product(models.Model):
     category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL, related_name='products')
     name = models.CharField(max_length=200, db_index=True)  # 名称
+    number = models.PositiveIntegerField(verbose_name='序号')  # 正整数
     slug = models.SlugField(max_length=200, db_index=True)
     image = models.ImageField(upload_to='products/%Y/%m/%d',
                               blank=True)
@@ -37,7 +39,7 @@ class Product(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('number',)
         index_together = (('id', 'slug'),)
         verbose_name = 'product'
         verbose_name_plural = '产品'

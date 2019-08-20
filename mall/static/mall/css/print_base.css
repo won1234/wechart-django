@@ -1,0 +1,39 @@
+body{
+  color: #000;
+  background: #fff;
+}
+
+nav, aside {
+  display: none;
+}
+
+body, article {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+@page {
+  margin: 2cm;
+}
+
+img {
+   max-width: 100% !important;
+}
+
+#header {
+    display: none;
+}
+
+#content {
+    float: none;
+}
+
+#order_detail li{
+    page-break-inside: avoid;
+    font-size: 15pt;
+}
+
+#order_detail li strong {
+    display: none;
+}
