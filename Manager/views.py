@@ -34,10 +34,10 @@ class SqlFilter(object):
         self.start = created_start  # html 传过来的数据类型 None <class 'NoneType'> / 2019-07-01 <class 'datetime.date'>
         self.end = created_end
 
-    # 以QuerySET形式返回订单数据
+    # 以QuerySET形式返回订单,QuerySET orders
     def sql_orders(self):
         if self.start and self.end and self.start <= self.end:  # 当开始时间和结束时间都不为空，且开始时间小于等于结束时间
-            # print(self.start, self.end)    # 取得的timedate.date的时间为00：00：00，所以要查今天的话，结束时间+1天
+            # print(self.start, self.end)  # 取得的timedate.date的时间为00：00：00，所以要查今天的话，结束时间+1天
             o0 = Order.objects.filter(created__range=(self.start, self.end + timedelta(days=1)))
         elif not self.start and self.end:  # 开始时间为空,结束时间不为空
             o0 = Order.objects.filter(created__lte=(self.end + timedelta(days=1)))
@@ -59,12 +59,12 @@ class SqlFilter(object):
             o2 = o1
         if self.send:  # 判断是否发货
             if self.send == 1:
-                o3 = o2.filter(send=True)
+                QuerySET_orders = o2.filter(send=True)
             if self.send == 2:
-                o3 = o2.filter(send=False)
+                QuerySET_orders = o2.filter(send=False)
         else:
-            o3 = o2
-        return o3
+            QuerySET_orders = o2
+        return QuerySET_orders
 
     # 以[（order,order_items）,...]列表+元组形式返回订单和清单数据 order_items为queryset
     def orders_items(self):
@@ -117,8 +117,8 @@ class SqlFilter(object):
         for order, order_items in self.orders_items():
             user_profile = order.user  # 用户
             user_orders_dic = users_orders_dic.get(user_profile,
-                                                           {'orders': [], 'products_set': set(), 'orders_num': 0,
-                                                            'cost': 0})  # 用户还不存在，初始化，如果存在进行赋值
+                                                   {'orders': [], 'products_set': set(), 'orders_num': 0,
+                                                    'cost': 0})  # 用户还不存在，初始化，如果存在进行赋值
             user_orders_dic['orders_num'] = user_orders_dic['orders_num'] + 1
             user_orders_dic['cost'] = user_orders_dic['cost'] + order.get_total_cost()
             user_orders_dic['orders'].append((order, order_items))
@@ -415,12 +415,12 @@ def shop_statistical_table(request):
                     orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
                     total_cost = orders_sql.num_cost()[1]  # 订单总金额
                     products_total_dic = orders_sql.products_total()  # {product:{'total': , 'num': , 'details': ,'cost':,},....}
-                    users_orders_dic = orders_sql.user_orders_total()   # 取得数据库中的订单
+                    users_orders_dic = orders_sql.user_orders_total()  # 取得数据库中的订单
 
-                    users_products_sorted_dic = {}     # 每个用户产品进行排序字典｛user:[product1,product2,...],...｝
-                    users_dates_sorted_dic = {}         # 用户含有订单的日期进行排序 {user:[date1,date2,...],...}
+                    users_products_sorted_dic = {}  # 每个用户产品进行排序字典｛user:[product1,product2,...],...｝
+                    users_dates_sorted_dic = {}  # 用户含有订单的日期进行排序 {user:[date1,date2,...],...}
                     # {user:{date1:{},date2{}...}     date1:{'day_cost':0,product:0,product:0...}
-                    users_dates_orders_dic = {}         # 每个用户订单根据日期的字典
+                    users_dates_orders_dic = {}  # 每个用户订单根据日期的字典
 
                     # 每个用户的统计字典{user: {'orders':[], 'products_set':{},'orders_num': , 'cost': },...}
                     # 'orders':[(order, order_items),....]
@@ -434,15 +434,17 @@ def shop_statistical_table(request):
                             order = orders[0]
                             order_items = orders[1]
                             order_created = order.created
-                            order_created_day = datetime(order_created.year, order_created.month, order_created.day, 0, 0)
+                            order_created_day = datetime(order_created.year, order_created.month, order_created.day, 0,
+                                                         0)
                             dates_set.add(order_created_day)
                             # {'day_cost':0,product:0,product:0...}
                             date_cost_products_dic = date_dic.get(order_created_day, {'day_cost': 0})
-                            date_cost_products_dic['day_cost'] = date_cost_products_dic['day_cost'] + order.get_total_cost()
+                            date_cost_products_dic['day_cost'] = date_cost_products_dic[
+                                                                     'day_cost'] + order.get_total_cost()
                             for order_item in order_items:
                                 product = order_item.product
                                 quantity = order_item.quantity
-                                product_quantity = date_cost_products_dic.get(product, 0)    # 已有的数量
+                                product_quantity = date_cost_products_dic.get(product, 0)  # 已有的数量
                                 date_cost_products_dic[product] = product_quantity + quantity  # 产品数量
                             date_dic[order_created_day] = date_cost_products_dic
                         users_dates_orders_dic[user] = date_dic
@@ -459,3 +461,70 @@ def shop_statistical_table(request):
 
     form = SelectOrdersForm()
     return render(request, 'manager/shop_statistical_table.html', {'form': form})
+
+
+# 表格展示最近七天的用户，每天用户订单状况。表格展示。row 日期，column 店铺。
+# 大于三天的，如果今天没有，做标记提示。等于三天的，判断前一天有没。
+@login_required
+def shop_shopping(request):
+    datetime_now = datetime.today()
+    year = datetime_now.year
+    month = datetime_now.month
+    day = datetime_now.day
+    # 开始时间为当前时间-7天, 前6天
+    created_start = datetime(year, month, day, 0, 0) - timedelta(days=6)
+    created_end = datetime(year, month, day, 0, 0) - timedelta(days=1)
+    start = created_start
+    end = created_end
+    date_sorted_list = []
+    t = timedelta(days=1)
+    while start <= end:
+        date_sorted_list.append(start)
+        start = start + t
+    users_set = set()  # 所有用户的集合，后面会根据number进行排序。
+    # orders_sql_6,前6天的订单
+    orders_sql_6 = SqlFilter(created_start=created_start, created_end=created_end)
+    users_orders_list = orders_sql_6.sql_orders()  # QuerySET orders
+    # orders_sql_7 今天的订单
+    created_today = datetime(year, month, day, 0, 0)
+    orders_sql_7 = SqlFilter(0, 0, 0, created_today, created_today)
+    users_orders_7 = orders_sql_7.sql_orders()  # QuerySET orders
+    users_today_set = set()  # 今天有订单的用户集合
+    for order in users_orders_7:
+        users_today_set.add(order.user)
+
+    # users_shopping_dic {user1:{date1,date2,date3},...}
+    users_shopping_dic = {}
+    for order in users_orders_list:
+        created_date = order.created
+        created_day = datetime(created_date.year, created_date.month, created_date.day, 0, 0)
+        # print(created_date, 'created_date')
+        user = order.user
+        users_set.add(user)
+        user_shopping_set = users_shopping_dic.get(user, set())
+        user_shopping_set.add(created_day)
+        users_shopping_dic[user] = user_shopping_set
+    # 分析前6天的数据，
+    users_strong_set = set()  # 需要突出显示的用户
+    for user, user_shopping_set in users_shopping_dic.items():
+        # 如果等于3天，判断前一天有无，如果前一天没有，突出显示
+        if len(user_shopping_set) == 3:
+            if created_end not in user_shopping_set:
+                # 今天也没有,
+                if user not in users_today_set:
+                    users_strong_set.add(user)
+                    # print(user, '==3')
+        # 如果大于3天，而今天没有，突出显示
+        elif len(user_shopping_set) > 3:
+            if user not in users_today_set:
+                users_strong_set.add(user)
+                # print(user, '>3')
+    # print(users_strong_set)
+    users_sorted_list = sorted(list(users_set), key=lambda x: x.department.number)
+    return render(request, 'manager/shop_shopping.html',
+                  {'users_sorted_list': users_sorted_list,
+                   'date_sorted_list': date_sorted_list,
+                   'users_shopping_dic': users_shopping_dic,
+                   'users_today_set': users_today_set,
+                   'users_strong_set': users_strong_set}
+                  )

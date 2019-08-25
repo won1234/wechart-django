@@ -38,6 +38,8 @@ def sendmsgbywechart(user_profile, message_user, message_tag):
     api1 = CorpApi(TestConf['CORP_ID'], '7_f86lX3DaLpFGKW_Ya6WvKe-QQVKlkjVr5fp0N8cHQ')
     # 取得用户的企业号个人账号
     wechat_name = user_profile.wechat_name
+    if not wechat_name:        # 如果为空，发送给管理员
+        wechat_name = 'WuGuangQiang'
     # 发送给下单的人的消息
     try:
         ## 发送消息

@@ -16,17 +16,17 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 # # 允许root 用户运行celery
 # platforms.C_FORCE_ROOT = True
-app.conf.beat_schedule = {
-    # 'add-every-10-seconds': {
-    #     'task': 'orders.tasks.add',
-    #     'schedule': 10.0,
-    #     'args': (16, 16)
-    # },
-    'statistics-today-orders': {
-            'task': 'orders.tasks.stat_orders_today',
-            'schedule': crontab(hour=23, minute=59),
-            # 'schedule': crontab(hour=15, minute=56),
-            # 'args': (16, 16)
-        },
-}
+# app.conf.beat_schedule = {
+#     # 'add-every-10-seconds': {
+#     #     'task': 'orders.tasks.add',
+#     #     'schedule': 10.0,
+#     #     'args': (16, 16)
+#     # },
+#     'statistics-today-orders': {
+#             'task': 'orders.tasks.stat_orders_today',
+#             'schedule': crontab(hour=23, minute=59),
+#             # 'schedule': crontab(hour=15, minute=56),
+#             # 'args': (16, 16)
+#         },
+# }
 app.conf.timezone = "Asia/Shanghai"

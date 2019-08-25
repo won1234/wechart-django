@@ -1,0 +1,43 @@
+{% extends "manager/base.html" %}
+
+{% block title %}
+最近下单情况
+{% endblock %}
+
+{% block content %}
+<div>
+    {% if request.user.is_authenticated %}
+    {% load manager_filters %}
+    <div>
+        <table class="manager_table">
+            <caption>下单情况</caption>
+            <tr>
+                <th>用户</th>
+                {% for date in date_sorted_list %}
+                <th>{{ date|date:"m月d日" }}</th>
+                {% endfor %}
+                <th>{% now "m月d日" %}</th>
+            </tr>
+            {% for user in users_sorted_list %}
+            <tr>
+                <th>{{ user }}</th>
+                {% for date in date_sorted_list %}
+                {% if date in users_shopping_dic|get_value:user %}
+                <td style="background-color: #00ff00">1</td>
+                {% else %}
+                <td style="background-color: #ff0000;">0</td>
+                {% endif %}
+                {% endfor %}
+                <!--                今天的数据-->
+                {% if user in users_today_set %}
+                <td >1</td>
+                {% else %}
+                <td {% if user in users_strong_set %}style="background-color: #0000ff"{% endif %}>0</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
