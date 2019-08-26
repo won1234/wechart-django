@@ -37,7 +37,7 @@ class SqlFilter(object):
     # 以QuerySET形式返回订单,QuerySET orders
     def sql_orders(self):
         if self.start and self.end and self.start <= self.end:  # 当开始时间和结束时间都不为空，且开始时间小于等于结束时间
-            # print(self.start, self.end)  # 取得的timedate.date的时间为00：00：00，所以要查今天的话，结束时间+1天
+            # print(self.start, self.end)  # 取得的timedate.date的时间为00：00：00，所以要查今天的话，结束时间+1天的00：00：00
             o0 = Order.objects.filter(created__range=(self.start, self.end + timedelta(days=1)))
         elif not self.start and self.end:  # 开始时间为空,结束时间不为空
             o0 = Order.objects.filter(created__lte=(self.end + timedelta(days=1)))
@@ -199,7 +199,7 @@ def export_to_pdf(request):
     # present the option to save the file.
     return FileResponse(buffer, as_attachment=True, filename='hello.pdf')
 
-
+# 订单不含金额
 @login_required
 def order_list(request):
     if not request.GET.get('user') and not request.GET.get('page'):  # 通过传过来的url，判断是刚打开页面还是点了确定
@@ -244,7 +244,7 @@ def order_list(request):
                               {'orders_items_list': orders_items_list, 'form': form, 'url_get': request.GET})
 
 
-# 用于管理员查看,含订单金额页面，报表导出功能；
+# 订单含金额页面，报表导出功能；
 @login_required
 def order_list_cost(request):
     if not request.GET.get('user') and not request.GET.get('page'):  # 通过传过来的url，判断是刚打开页面还是点了确定
@@ -315,6 +315,10 @@ def order_list_cost(request):
 # 今日订单 展示当天的数据，每样东西总计，有哪些订单，哪些东西；
 @login_required
 def orders_today(request):
+    # 统计前一天的
+    # yesterday_datetime = datetime.today() - timedelta(days=1)
+    # yesterday_date = yesterday_datetime.strftime("%Y-%m-%d")
+    # orders_sql = SqlFilter(created_start=yesterday_date, created_end=yesterday_date)
     today_datetime = datetime.today()
     today_date = today_datetime.strftime("%Y-%m-%d")
     # 传入条件，创建查询数据库的实例
