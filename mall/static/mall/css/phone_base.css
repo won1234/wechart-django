@@ -197,6 +197,26 @@ ul.errorlist {
     border:1;
 }
 
+#order_detail {
+    margin: 5px;
+    font-size: 14px;
+}
+
+#order_detail li {
+    margin: 5px;
+    border-with:thin;
+    border-style:dashed;
+    padding: 5px;
+}
+
+#order_detail li p {
+    margin-left: 10%;
+}
+
+#order_detail li strong {
+    margin-left: 10%;
+}
+
 #subheader {
     background:#ececec;
     color:#444;
