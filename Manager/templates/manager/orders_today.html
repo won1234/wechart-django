@@ -5,21 +5,39 @@
 {% endblock %}
 
 {% block content %}
-<div>
+<div id="orders_today">
     {% if request.user.is_authenticated %}
-    <div id="orders_total">
-        <strong>{{ today_datetime }}的订单。 订单个数：{{ orders_items_list|length }}</strong>
-        <ul id="products_total">
-        {% for product_total in products_total %}
-            <li style="border-with:thin;border-style:solid ;border-color:#FF3030;text-align: left;margin-bottom: 20px;padding: 5px;">
-                <strong>产品： {{ product_total.0.name }}</strong>
-                <p>总量：{{ product_total.1.total }}</p>
-                <p>个数： {{ product_total.1.num }}</p>
-                <p>详细清单： {{ product_total.1.details }}</p>
-            </li>
+    {% load manager_filters %}
+    <table class="manager_table">
+        <caption>{{ today_datetime }}的订单</caption>
+        <tr>
+            <th>序号</th>
+            <th>店铺</th>
+            {% for product_total in products_total %}
+            <th>
+                {{ product_total.0.name }}
+            </th>
+            {% endfor %}
+        </tr>
+        {% for order in order_by %}
+        <tr>
+            <td>{{ order|add:1 }}</td>
+            {% with user=users_sorted_list|get_list_value:order %}
+            <td>{{ user }}</td>
+            {% for product_total in products_total %}
+            <td>{{ users_products_dic|get_value_dic:user|get_value:product_total.0 }}</td>
+            {% endfor %}
+            {% endwith %}
+        </tr>
         {% endfor %}
-        </ul>
-    </div>
+        <tr>
+            <th></th>
+            <th>总量</th>
+            {% for product_total in products_total %}
+            <th>{{ product_total.1.total }}</th>
+            {% endfor %}
+        </tr>
+    </table>
     <ul id="order_detail">
         {% for order_items in orders_items_list %}
         {% with order=order_items.0 %}

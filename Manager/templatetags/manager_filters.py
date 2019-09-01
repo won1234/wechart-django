@@ -20,3 +20,15 @@ def get_value_dic(d, key_name):  # 传入一个列表和字典。根据列表内
 @register.filter
 def multiplication(m1, m2):
     return m1 * m2
+
+
+@register.filter(name='get_list_value')  # 注册自定义的filter
+def get_list_value(l, index):  # 传入一个列表和数字，返回列表的这个内容，没有返回None
+    try:
+        res = l[index]
+    except Exception:
+        res = None
+    finally:
+        return res
+
+

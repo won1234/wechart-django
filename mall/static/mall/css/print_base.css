@@ -29,6 +29,9 @@ img {
     float: none;
 }
 
+#order_detail{
+    display: none;
+}
 #order_detail li{
     page-break-inside: avoid;
     font-size: 12pt;
@@ -53,3 +56,22 @@ img {
     border:thin solid black;
 }
 
+#orders_today .manager_table {
+    border:thin solid black;
+    width:auto;
+    border-collapse:collapse;
+}
+
+#orders_today .manager_table caption{
+    font-size:10pt;
+}
+#orders_today .manager_table td{
+    font-size:10pt;
+    border:thin solid black;
+    padding: 5px;
+}
+#orders_today .manager_table th{
+    font-size:8pt;
+    border:thin solid black;
+    padding: 5px;
+}
