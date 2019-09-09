@@ -5,14 +5,14 @@
 {% endblock %}
 
 {% block content %}
-<strong style="font-size:50px;margin-bottom:60px;"> 展示最近一次的订单，直接修改数量，提交可快下单。</strong>
+<strong style="font-size:50px;margin-bottom:60px;"> 直接修改数量，并提交可快下单。</strong>
 
 
 
 {% if request.user.is_authenticated %}
 <form action="." method="post" style="font-size:40px;">
-    {% for last_order_item in last_order_items %}
-     {{ last_order_item.product }} ：<input type="number" name={{ last_order_item.product.id }} value={{ last_order_item.quantity }} style="font-size:40px;border:5px solid #00FF33;"> <br><br>
+    {% for product, quantity in last_product_quantity.items %}
+     {{ product }} ：<input type="number" name={{ product.id }} value={{ quantity }} style="font-size:40px;border:5px solid #00FF33;"> <br><br>
     {% endfor %}
     订单描述：<input style="font-size:40px;border:5px solid #0000FF;" type="text" name="description" value={{ description }} >
     <!-- 判断用户是否有提交订单权限   -->

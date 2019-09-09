@@ -11,19 +11,21 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from datetime import datetime
 
 
-# 订单添加运费item
+# 订单添加运费item，9月9日修改为加工费，id=32，改为id=31
 def order_add_freight(order):
     # 取得运费product
-    product = Product.objects.get(id=32)
+    product = Product.objects.get(id=31)
     freight = order.user.freight
     if not freight:   # 为空时
         price = 0
     else:
-        price = freight.price
+        price = freight.price       # 加工费价格
+        print(price)
     OrderItem.objects.create(order=order,
                              product=product,
                              price=price,
                              quantity=1)
+
 
 # 创建订单
 @login_required
@@ -128,6 +130,12 @@ def order_send_no_pay(request):
             product_cost_dic[product] = product_cost_dic.get(product, 0) + quantity * price  # 所有产品金额
         date_products_dic[order_created_day] = date_dic
     products_list_sorted = sorted(list(product_set), key=lambda x: x.id)
+    # 取得加工费用，价格进行修改,用于修改展示“单价”
+    process_fee = user_pro.freight.price
+    product_process = Product.objects.get(name="加工费")
+    process_fee_index = products_list_sorted.index(product_process)
+    products_list_sorted[process_fee_index].price = process_fee
+
     date_list_sorted = sorted(list(date_set))
     return render(request, 'orders/order/order_send_no_pay.html',
                   {'products_list_sorted': products_list_sorted, 'date_list_sorted': date_list_sorted,
@@ -174,7 +182,7 @@ def admin_create_order(request):
                                                  product=product,
                                                  price=product.price,
                                                  quantity=quantity)
-                    order_add_freight(order)   # 添加运费
+                    order_add_freight(order)   # 添加加工费
                     order_created.delay(user_profile.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
                     # form = AdminCreateOrder()  # 创建成功则清空内容
                     # return render(request, 'orders/order/admin_create_order.html', {'form': form, 'error': str(order) + '下单成功'})
@@ -185,26 +193,40 @@ def admin_create_order(request):
         return render(request, 'orders/order/admin_create_order.html', {'form': form})
 
 
-# 展示用户的上次订单，可以直接修改数量，并提交（有提交权限）。
+# 快速提交订单，展示用户的上次订单，可以直接修改数量，并提交（有提交权限）。
 @login_required
 def last_order(request):
     # 取得上次订单
     user_pro = Profile.objects.get(user=User.objects.get(username=request.user.username))  # 当前用户的扩展信息
     user_permissions = user_pro.group2.all()  # 用户的权限
+    category = Category.objects.get(name="馅料")
+    products = Product.objects.filter(available=True).filter(category=category)
     last_orders = Order.objects.filter(user=user_pro).order_by('-created')  # 取得上次时间最近的订单
     error_msg = ''
     if last_orders:  # 如果订单不为空
         last_order = last_orders[0]
         description = last_order.description
         last_order_items = OrderItem.objects.filter(order=last_order)
+        last_product_quantity = {}  # {product:,...}
+        for product in products:
+            last_product_quantity[product] = 0        # 全置0
+        for item in last_order_items:
+            product = item.product
+            quantity = item.quantity
+            if last_product_quantity.get(product):   # 判断有无这个产品
+                last_product_quantity[product] = quantity   # 修改数量
     else:
-        last_order_items = None
+        last_product_quantity = {}  # {product:,...}
+        for product in products:
+            last_product_quantity[product] = 0
         description = ''
+
     if request.method == 'POST':  # 点击提交时，取得产品id和数量。
         post_dict = request.POST.dict()  # post 的数据
         post_dict.pop('csrfmiddlewaretoken')
         clean_dict = {}  # 用于存放，判断后都是整数的数据
         description = post_dict.pop('description')
+        quantitys = 0 # 判断提交的是不是全是0
         # ('csrfmiddlewaretoken', '89nyHBjPea8RwMD3RlXdQuGXrrsUPeFpiqJQHsRg5G5usWZFYOtnCsY24WuXmeLC')
         if post_dict:  # 字典不为空
             for order_item in post_dict.items():
@@ -219,12 +241,15 @@ def last_order(request):
                 else:  # 有一个不是数字
                     error_msg = '产品id： ' + product_id + '。  数量：' + product_quantity + ' 中有一个不是数字。'
                     break
+                quantitys = quantitys + int(product_quantity)
+            if not quantitys:
+                error_msg = '产品数量全部为0。'
         else:
             error_msg = '产品为空'
 
         if error_msg:  # 如果有错误，返回错误信息
             return render(request, 'orders/order/last_order.html',
-                          {'last_order_items': last_order_items, 'user_permissions': user_permissions,
+                          {'last_product_quantity': last_product_quantity, 'user_permissions': user_permissions,
                            'error_msg': error_msg})
         else:  # 没有错误，创建订单
             total_cost = 0.13
@@ -236,9 +261,10 @@ def last_order(request):
                                          product=product,
                                          price=product.price,
                                          quantity=int(product_quantity))
+            order_add_freight(order)  # 添加加工费
             order_created.delay(user_pro.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
             return redirect(reverse('orders:order_created', kwargs={'order_id': order.id}))
 
     return render(request, 'orders/order/last_order.html',
-                  {'last_order_items': last_order_items, 'description': description,
+                  {'last_product_quantity': last_product_quantity, 'description': description,
                    'user_permissions': user_permissions, 'error_msg': error_msg})

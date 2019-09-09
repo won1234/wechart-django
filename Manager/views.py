@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required  # 认证（authentica
 from login.models import Profile
 from django.contrib.auth.models import User
 from orders.models import Order, OrderItem
+from mall.models import Product
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import SelectOrdersForm
 from datetime import timedelta, datetime
@@ -28,7 +29,7 @@ class SqlFilter(object):
     '''
 
     def __init__(self, user=0, paid=0, send=0, created_start=None, created_end=None):
-        self.user = user
+        self.user = user   # 传进来的是id，self.user为user_pro
         self.paid = paid
         self.send = send
         self.start = created_start  # html 传过来的数据类型 None <class 'NoneType'> / 2019-07-01 <class 'datetime.date'>
@@ -379,7 +380,7 @@ def shop_statistical_table(request):
                 orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
                 # 查询数据，取得的是个列表 ，[（order,order_items）,...]列表+元组形式返回订单和清单数据
                 orders_items_list = orders_sql.orders_items()
-                user_name = orders_sql.user
+                user_pro = orders_sql.user
                 # start_datetime = orders_sql.start   # 输入的开始时间与结束时间
                 # end_datetime = orders_sql.end
                 # [product,...] {date:{product:,...},...} products_quantity_dic ={product:quantitys,...}
@@ -407,6 +408,11 @@ def shop_statistical_table(request):
                     date_products_dic[order_created_day] = products_dic
                 products_list = list(products_set)
                 products_list_sorted = sorted(products_list, key=lambda x: x.number)  # 根据产品的number进行排序
+                # 取得加工费用，价格进行修改,用于修改展示“单价”
+                process_fee = user_pro.freight.price
+                product_process = Product.objects.get(name="加工费")
+                process_fee_index = products_list_sorted.index(product_process)
+                products_list_sorted[process_fee_index].price = process_fee
                 total_cost = 0
                 for cost in product_cost_dic.values():
                     total_cost = total_cost + cost
@@ -426,7 +432,7 @@ def shop_statistical_table(request):
                 return render(request, 'manager/shop_statistical_table.html',
                               {'date_products_dic': date_products_dic, 'product_quantitys_dic': product_quantitys_dic,
                                'product_cost_dic': product_cost_dic, 'products_list_sorted': products_list_sorted,
-                               'form': form, 'user_name': user_name, 'total_cost': total_cost,
+                               'form': form, 'user_name': user_pro, 'total_cost': total_cost,
                                'date_all_sort': date_all_sort, 'user_all': user_all,
                                'is_paid': cd['paid'], 'is_send': cd['send']})
 
@@ -449,7 +455,14 @@ def shop_statistical_table(request):
                     # 'orders':[(order, order_items),....]
                     for user, user_order_dic in users_orders_dic.items():
                         products_sorted = sorted(user_order_dic['products_set'], key=lambda x: x.number)
-                        # print(products_sorted)
+                        # 取得加工费用，价格进行修改,用于修改展示“单价”
+                        if user.freight:  # 是否选择了配送费
+                            process_fee = user.freight.price
+                        else:
+                            process_fee = 0
+                        product_process = Product.objects.get(name="加工费")
+                        process_fee_index = products_sorted.index(product_process)
+                        products_sorted[process_fee_index].price = process_fee
                         users_products_sorted_dic[user] = products_sorted
                         dates_set = set()
                         date_dic = {}  # {date1:{},date2{}...}
