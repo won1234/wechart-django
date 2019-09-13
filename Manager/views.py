@@ -1,11 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, reverse, redirect
 from django.contrib.auth.decorators import login_required  # 认证（authentication）框架的login_required装饰器
 from login.models import Profile
 from django.contrib.auth.models import User
 from orders.models import Order, OrderItem
 from mall.models import Product
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .forms import SelectOrdersForm
+from .forms import SelectOrdersForm, SelectProductsForm
 from datetime import timedelta, datetime
 from django.http import HttpResponse, FileResponse
 from django.template import loader
@@ -28,8 +28,8 @@ class SqlFilter(object):
                     SqlFilter.num_cost()    查询到的的数量与总金额return (orders_num, orders_costs)
     '''
 
-    def __init__(self, user=0, paid=0, send=0, created_start=None, created_end=None):
-        self.user = user   # 传进来的是id，self.user为user_pro
+    def __init__(self, user=0, send=0, paid=0, created_start=None, created_end=None):
+        self.user = user  # 传进来的是id，self.user为user_pro
         self.paid = paid
         self.send = send
         self.start = created_start  # html 传过来的数据类型 None <class 'NoneType'> / 2019-07-01 <class 'datetime.date'>
@@ -134,6 +134,79 @@ class SqlFilter(object):
         return users_orders_dic
 
 
+class ProductSqlFilter(object):
+    '''
+    传入参数： product id，   8 <class 'int'>
+                created_start订单的开始时间，    可以是如‘2018-08-01’字符串, 也可以是datetime对象
+                created_end订单的结束时间 ，
+    获取的数据： 每种产品的统计
+                self.product_quantity_dic = {}   # {product: 数量,...}
+                 self.date_sorted_list
+                 self.products_sorted_list = []
+                 self.product_date_quantity_dic = {}  # {product:{date:数量,...},...}
+    '''
+
+    def __init__(self, product=0, created_start=None, created_end=None):
+        self.product = product  # 8 <class 'int'>
+        # print(product, type(product))
+        self.start = created_start  # html 传过来的数据类型 None <class 'NoneType'> / 2019-07-01 <class 'datetime.date'>
+        self.end = created_end
+        self.products_sorted_list = []
+        start = created_start
+        end = created_end
+        self.date_sorted_list = []
+        t = timedelta(days=1)
+        while start <= end:
+            self.date_sorted_list.append(start)
+            start = start + t
+        self.product_quantity_dic = {}  # {product: 数量,...}
+        self.product_date_quantity_dic = {}  # {product:{date:数量,...},...}
+        product_set = set()
+        # 根据传入的数据，取得订单
+        if self.start and self.end and self.start <= self.end:  # 当开始时间和结束时间都不为空，且开始时间小于等于结束时间
+            # print(self.start, self.end)  # 取得的timedate.date的时间为00：00：00，所以要查今天的话，结束时间+1天的00：00：00
+            o0 = Order.objects.filter(created__range=(self.start, self.end + timedelta(days=1)))
+        elif not self.start and self.end:  # 开始时间为空,结束时间不为空
+            o0 = Order.objects.filter(created__lte=(self.end + timedelta(days=1)))
+        elif not self.end and self.start:  # 结束时间为空,开始时间不为空
+            o0 = Order.objects.filter(created__gte=self.start)
+        else:  # 开始时间和结束时间都为空
+            o0 = Order.objects.all()
+        if self.product == 0:  # 为全部时
+            for order in o0:
+                order_created = order.created
+                order_created_day = datetime(order_created.year, order_created.month, order_created.day, 0, 0)
+                order_items = OrderItem.objects.filter(order=order)
+                for order_item in order_items:
+                    product = order_item.product
+                    product_set.add(product)
+                    quantity = order_item.quantity
+                    product_quantity = self.product_quantity_dic.get(product, 0)
+                    self.product_quantity_dic[product] = product_quantity + quantity
+                    date_quantity_dic = self.product_date_quantity_dic.get(product, {})  # 取得这个产品的字典
+                    product_date_quantity = date_quantity_dic.get(order_created_day, 0)  # 取得这个字典中，这天的数量
+                    date_quantity_dic[order_created_day] = product_date_quantity + quantity
+                    self.product_date_quantity_dic[product] = date_quantity_dic
+        else:
+            for order in o0:
+                order_created = order.created
+                order_created_day = datetime(order_created.year, order_created.month, order_created.day, 0, 0)
+                order_items = OrderItem.objects.filter(order=order)
+                for order_item in order_items:
+                    product = order_item.product
+                    product_set.add(product)
+                    if product.id == self.product:  # id与传入的相等时
+                        quantity = order_item.quantity
+                        product_quantity = self.product_quantity_dic.get(product, 0)
+                        self.product_quantity_dic[product] = product_quantity + quantity
+                        date_quantity_dic = self.product_date_quantity_dic.get(product, {})  # 取得这个产品的字典
+                        product_date_quantity = date_quantity_dic.get(order_created_day, 0)  # 取得这个字典中，这天的数量
+                        date_quantity_dic[order_created_day] = product_date_quantity + quantity
+                        self.product_date_quantity_dic[product] = date_quantity_dic
+
+        self.products_sorted_list = sorted(list(product_set), key=lambda x: x.number)  # 根据产品的number进行排序
+
+
 # 导出CSV功能
 def export_to_csv(filter_conditon, title_row, datas, template_csv):
     # filter_conditon 过滤的条件
@@ -200,6 +273,7 @@ def export_to_pdf(request):
     # present the option to save the file.
     return FileResponse(buffer, as_attachment=True, filename='hello.pdf')
 
+
 # 订单不含金额
 @login_required
 def order_list(request):
@@ -215,7 +289,7 @@ def order_list(request):
             # is_paid = ((0, '全部'), (1, '已支付'), (2, '未支付'))
             # is_send = ((0, '全部'), (1, '已发货'), (2, '未发货'))
             # 传入条件，创建查询数据库的实例
-            orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
+            orders_sql = SqlFilter(cd['user'], cd['send'], cd['paid'], cd['created_start'], cd['created_end'])
             # 查询数据，取得的是个列表
             orders_items_list = orders_sql.orders_items()
             # print('request.scheme', request.scheme)
@@ -263,7 +337,7 @@ def order_list_cost(request):
             # is_paid = ((0, '全部'), (1, '已支付'), (2, '未支付'))
             # is_send = ((0, '全部'), (1, '已发货'), (2, '未发货'))
             # 传入条件，创建查询数据库的实例
-            orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
+            orders_sql = SqlFilter(cd['user'], cd['send'], cd['paid'], cd['created_start'], cd['created_end'])
             # 查询数据，取得的是个列表 ，[（order,order_items）,...]列表+元组形式返回订单和清单数据
             orders_items_list = orders_sql.orders_items()
             if request.GET['export_csv'] == 'on1':  # 导出cvs1
@@ -377,7 +451,7 @@ def shop_statistical_table(request):
             if cd['user']:  # 用户不为全部时
                 user_all = False
                 # 传入条件，创建查询数据库的实例
-                orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
+                orders_sql = SqlFilter(cd['user'], cd['send'], cd['paid'], cd['created_start'], cd['created_end'])
                 # 查询数据，取得的是个列表 ，[（order,order_items）,...]列表+元组形式返回订单和清单数据
                 orders_items_list = orders_sql.orders_items()
                 user_pro = orders_sql.user
@@ -441,7 +515,7 @@ def shop_statistical_table(request):
                 if cd['created_start'] and cd['created_end']:  # 时间不为空时
                     user_all = True
                     # 传入条件，创建查询数据库的实例
-                    orders_sql = SqlFilter(cd['user'], cd['paid'], cd['send'], cd['created_start'], cd['created_end'])
+                    orders_sql = SqlFilter(cd['user'], cd['send'], cd['paid'], cd['created_start'], cd['created_end'])
                     total_cost = orders_sql.num_cost()[1]  # 订单总金额
                     products_total_dic = orders_sql.products_total()  # {product:{'total': , 'num': , 'details': ,'cost':,},....}
                     users_orders_dic = orders_sql.user_orders_total()  # 取得数据库中的订单
@@ -497,6 +571,36 @@ def shop_statistical_table(request):
 
     form = SelectOrdersForm()
     return render(request, 'manager/shop_statistical_table.html', {'form': form})
+
+
+# 产品销量，每样产品的数量
+@login_required
+def product_sales(request):
+    if request.method == 'POST':  # 点击提交时，取得product的id和日期。
+        form = SelectProductsForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            datetime_now = datetime.today()
+            year = datetime_now.year
+            month = datetime_now.month
+            day = datetime_now.day
+            if not cd['created_start']:  # 如果提交的开始时间为空时,开始时间为当前时间-15天
+                cd['created_start'] = datetime(year, month, day, 0, 0) - timedelta(days=14)
+            if not cd['created_end']:  # 如果结束时间为空，则为当前时间
+                cd['created_end'] = datetime(year, month, day, 0, 0)
+            products_sql = ProductSqlFilter(cd['product'], cd['created_start'], cd['created_end'])
+            product_quantity_dic = products_sql.product_quantity_dic  # {product: 数量,...}
+            date_sorted_list = products_sql.date_sorted_list
+            products_sorted_list = products_sql.products_sorted_list
+            product_date_quantity_dic = products_sql.product_date_quantity_dic
+            return render(request, 'manager/product_sales.html',
+                          {'form': form, 'product_quantity_dic': product_quantity_dic,
+                           'date_sorted_list': date_sorted_list, 'products_sorted_list': products_sorted_list,
+                           'product_date_quantity_dic': product_date_quantity_dic})
+    else:
+        form = SelectProductsForm()
+        return render(request, 'manager/product_sales.html',
+                      {'form': form})
 
 
 # 表格展示最近七天的用户，每天用户订单状况。表格展示。row 日期，column 店铺。
@@ -564,3 +668,39 @@ def shop_shopping(request):
                    'users_today_set': users_today_set,
                    'users_strong_set': users_strong_set}
                   )
+
+#  确认是否发货页面
+@login_required
+def confirm_shipment(request):
+    if request.user.username == 'won':  # 判断是否是管理员
+        if request.method == 'POST':  # 点击确定时
+            send_orders_id_list = request.POST.getlist('send_orders')  # checkout 收到的数据 <class 'list'> ['982', '981']
+            # print('checkout 收到的数据', type(send_orders_id), send_orders_id)
+            for send_order_id in send_orders_id_list:
+                if send_order_id.isdigit():    # 确认全是数字
+                    send_order = Order.objects.get(id=int(send_order_id))  # 取得订单
+                    send_order.send = True      # 设置为True
+                    send_order.save()
+            url = reverse('manager:confirm_shipment')
+            return redirect(url)
+        else:
+            orders_no_send = Order.objects.filter(send=False)   # 取得未发货的订单
+            return render(request, 'manager/confirm_shipment.html', {'orders_no_send': orders_no_send})
+
+#  确认是否付款页面
+@login_required
+def confirm_paid(request):
+    if request.user.username == 'won':  # 判断是否是管理员
+        if request.method == 'POST':  # 点击确定时
+            paid_orders_id_list = request.POST.getlist('paid_orders')  # checkout 收到的数据 <class 'list'> ['982', '981']
+            # print('checkout 收到的数据', type(send_orders_id), send_orders_id)
+            for paid_order_id in paid_orders_id_list:
+                if paid_order_id.isdigit():    # 确认全是数字
+                    paid_order = Order.objects.get(id=int(paid_order_id))  # 取得订单
+                    paid_order.paid = True      # 设置为True
+                    paid_order.save()
+            url = reverse('manager:confirm_paid')
+            return redirect(url)
+        else:
+            orders_no_paid = Order.objects.filter(paid=False)   # 取得未支付的订单
+            return render(request, 'manager/confirm_paid.html', {'orders_no_paid': orders_no_paid})

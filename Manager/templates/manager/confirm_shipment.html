@@ -1,0 +1,22 @@
+{% extends "manager/base.html" %}
+
+{% block title %}
+确认是否发货
+{% endblock %}
+{% block content %}
+<div>
+    {% if request.user.is_authenticated %}
+    {% load manager_filters %}
+    <div id="confirm_shipment">
+        <h1>发货-确认</h1>
+        <form action="{% url 'manager:confirm_shipment' %}" method="POST">
+            {% csrf_token %}
+            {% for order_no_send in orders_no_send %}
+            <input class="confirm_shipment" type="checkbox" name="send_orders" value={{ order_no_send.id }} checked=true >{{ order_no_send.created }}   {{ order_no_send.user }}<br>
+            {% endfor %}
+            <input type="submit" value="确定">
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

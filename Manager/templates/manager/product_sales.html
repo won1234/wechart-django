@@ -1,0 +1,48 @@
+{% extends "manager/base.html" %}
+
+{% block title %}
+产品销量
+{% endblock %}
+{% block content %}
+<div id="product_sales">
+    {% if request.user.is_authenticated %}
+    {% load manager_filters %}
+    <div id="order_filter">
+        <form action="{% url 'manager:product_sales' %}" method="POST">
+            {{ form }}
+            {% csrf_token %}
+            <input type="submit" value="确定">
+        </form>
+    </div>
+    {% endif %}
+    <table class="manager_table">
+        <tr>
+            <th>产品</th>
+            <th>总数量</th>
+        </tr>
+        {% for product, quantity in product_quantity_dic.items %}
+        <tr>
+            <td>{{ product.name }}</td>
+            <td>{{ quantity }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% for product in products_sorted_list %}
+    {% with product_date_dic=product_date_quantity_dic|get_value_dic:product %}
+    <table class="manager_table">
+        <caption>{{ product.name }}</caption>
+        <tr>
+            <th>日期</th>
+            <th>数量</th>
+        </tr>
+        {% for date in date_sorted_list%}
+        <tr>
+            <td>{{ date|date:"Y年m月d日"  }}</td>
+            <td>{{ product_date_dic|get_value:date }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endwith %}
+    {% endfor %}
+</div>
+{% endblock %}
