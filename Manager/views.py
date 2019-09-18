@@ -1,6 +1,6 @@
 from django.shortcuts import render, reverse, redirect
 from django.contrib.auth.decorators import login_required  # 认证（authentication）框架的login_required装饰器
-from login.models import Profile
+from login.models import Profile, Department
 from django.contrib.auth.models import User
 from orders.models import Order, OrderItem
 from mall.models import Product
@@ -12,6 +12,7 @@ from django.template import loader
 import codecs
 from reportlab.pdfgen import canvas
 import io
+from django.db.models import Q
 
 
 # 传入查询的条件，取得数据库中的订单数据
@@ -152,8 +153,8 @@ class ProductSqlFilter(object):
         self.start = created_start  # html 传过来的数据类型 None <class 'NoneType'> / 2019-07-01 <class 'datetime.date'>
         self.end = created_end
         self.products_sorted_list = []
-        start = created_start
-        end = created_end
+        start = datetime(created_start.year, created_start.month, created_start.day, 0, 0)
+        end = datetime(created_end.year, created_end.month, created_end.day, 0, 0)
         self.date_sorted_list = []
         t = timedelta(days=1)
         while start <= end:
@@ -485,8 +486,11 @@ def shop_statistical_table(request):
                 # 取得加工费用，价格进行修改,用于修改展示“单价”
                 process_fee = user_pro.freight.price
                 product_process = Product.objects.get(name="加工费")
-                process_fee_index = products_list_sorted.index(product_process)
-                products_list_sorted[process_fee_index].price = process_fee
+                try:  # 确认列表中，是否含有加工费，如果有，修改加工费的金额
+                    process_fee_index = products_list_sorted.index(product_process)
+                    products_list_sorted[process_fee_index].price = process_fee
+                except ValueError:
+                    pass
                 total_cost = 0
                 for cost in product_cost_dic.values():
                     total_cost = total_cost + cost
@@ -530,13 +534,17 @@ def shop_statistical_table(request):
                     for user, user_order_dic in users_orders_dic.items():
                         products_sorted = sorted(user_order_dic['products_set'], key=lambda x: x.number)
                         # 取得加工费用，价格进行修改,用于修改展示“单价”
-                        if user.freight:  # 是否选择了配送费
+                        if user.freight:  # user2中是否选择了配送费,相当于加工费
                             process_fee = user.freight.price
                         else:
                             process_fee = 0
-                        product_process = Product.objects.get(name="加工费")
-                        process_fee_index = products_sorted.index(product_process)
-                        products_sorted[process_fee_index].price = process_fee
+                        product_process = Product.objects.get(name="加工费")   # 在所有产品中取得加工费对象
+                        # 修改取得的products_sorted中的“加工费”
+                        try:        # 确认列表中，是否含有加工费，如果有，修改加工费的金额
+                            process_fee_index = products_sorted.index(product_process)
+                            products_sorted[process_fee_index].price = process_fee
+                        except ValueError:
+                            pass
                         users_products_sorted_dic[user] = products_sorted
                         dates_set = set()
                         date_dic = {}  # {date1:{},date2{}...}
@@ -591,8 +599,10 @@ def product_sales(request):
             products_sql = ProductSqlFilter(cd['product'], cd['created_start'], cd['created_end'])
             product_quantity_dic = products_sql.product_quantity_dic  # {product: 数量,...}
             date_sorted_list = products_sql.date_sorted_list
+            # print(date_sorted_list)
             products_sorted_list = products_sql.products_sorted_list
             product_date_quantity_dic = products_sql.product_date_quantity_dic
+            # print(product_date_quantity_dic)
             return render(request, 'manager/product_sales.html',
                           {'form': form, 'product_quantity_dic': product_quantity_dic,
                            'date_sorted_list': date_sorted_list, 'products_sorted_list': products_sorted_list,
@@ -669,38 +679,51 @@ def shop_shopping(request):
                    'users_strong_set': users_strong_set}
                   )
 
+
 #  确认是否发货页面
 @login_required
 def confirm_shipment(request):
-    if request.user.username == 'won':  # 判断是否是管理员
+    if request.user.username == 'won' or request.user.username == 'admin':  # 判断是否是管理员
         if request.method == 'POST':  # 点击确定时
             send_orders_id_list = request.POST.getlist('send_orders')  # checkout 收到的数据 <class 'list'> ['982', '981']
             # print('checkout 收到的数据', type(send_orders_id), send_orders_id)
             for send_order_id in send_orders_id_list:
-                if send_order_id.isdigit():    # 确认全是数字
+                if send_order_id.isdigit():  # 确认全是数字
                     send_order = Order.objects.get(id=int(send_order_id))  # 取得订单
-                    send_order.send = True      # 设置为True
+                    send_order.send = True  # 设置为True
                     send_order.save()
             url = reverse('manager:confirm_shipment')
             return redirect(url)
         else:
-            orders_no_send = Order.objects.filter(send=False)   # 取得未发货的订单
+            orders_no_send = Order.objects.filter(send=False)  # 取得未发货的订单
             return render(request, 'manager/confirm_shipment.html', {'orders_no_send': orders_no_send})
+
 
 #  确认是否付款页面
 @login_required
-def confirm_paid(request):
-    if request.user.username == 'won':  # 判断是否是管理员
+def confirm_paid(request, profile_id=None):
+    if request.user.username == 'won' or request.user.username == 'admin':  # 判断是否是管理员
         if request.method == 'POST':  # 点击确定时
             paid_orders_id_list = request.POST.getlist('paid_orders')  # checkout 收到的数据 <class 'list'> ['982', '981']
-            # print('checkout 收到的数据', type(send_orders_id), send_orders_id)
-            for paid_order_id in paid_orders_id_list:
-                if paid_order_id.isdigit():    # 确认全是数字
-                    paid_order = Order.objects.get(id=int(paid_order_id))  # 取得订单
-                    paid_order.paid = True      # 设置为True
-                    paid_order.save()
+            print('checkout 收到的数据', type(paid_orders_id_list), paid_orders_id_list)
+            # for paid_order_id in paid_orders_id_list:
+            #     if paid_order_id.isdigit():    # 确认全是数字
+            #         paid_order = Order.objects.get(id=int(paid_order_id))  # 取得订单
+            #         paid_order.paid = True      # 设置为True
+            #         paid_order.save()
             url = reverse('manager:confirm_paid')
             return redirect(url)
         else:
-            orders_no_paid = Order.objects.filter(paid=False)   # 取得未支付的订单
-            return render(request, 'manager/confirm_paid.html', {'orders_no_paid': orders_no_paid})
+            d1 = Department.objects.get(id=1)  # 金华区域
+            d2 = Department.objects.get(id=2)  # 其它区域
+            users_profile = Profile.objects.filter(Q(department=d1) | Q(department=d2))  # 两个区域的用户
+            # 取得用户已发送未支付的订单
+            if profile_id:
+                user_profile = Profile.objects.get(id=profile_id)
+                orders_send_no_pay = Order.objects.filter(user=user_profile, paid=False, send=True)
+            else:
+                user_profile = None
+                orders_send_no_pay = None
+            return render(request, 'manager/confirm_paid.html',
+                          {'users_profile': users_profile, 'user_profile': user_profile,
+                           'orders_send_no_pay': orders_send_no_pay})

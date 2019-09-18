@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from mall.models import ProductPriceGroup
+from django.urls import reverse
 
 
 class WechatTag(models.Model):
@@ -97,3 +98,8 @@ class Profile(models.Model):
 
     def __str__(self):
         return '{}'.format(self.user.first_name)
+
+    # 传入用户id，取得用户已发货，未支付的订单。
+    def get_send_no_pay_url(self):
+        return reverse('manager:confirm_paid',
+                       args=[self.id])
