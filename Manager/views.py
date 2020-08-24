@@ -189,13 +189,15 @@ class ProductSqlFilter(object):
                     date_quantity_dic[order_created_day] = product_date_quantity + quantity
                     self.product_date_quantity_dic[product] = date_quantity_dic
         else:
+            choice_product = Product.objects.get(id=self.product)
+            product_set = {choice_product}
             for order in o0:
                 order_created = order.created
                 order_created_day = datetime(order_created.year, order_created.month, order_created.day, 0, 0)
                 order_items = OrderItem.objects.filter(order=order)
                 for order_item in order_items:
                     product = order_item.product
-                    product_set.add(product)
+                    # product_set.add(product)
                     if product.id == self.product:  # id与传入的相等时
                         quantity = order_item.quantity
                         product_quantity = self.product_quantity_dic.get(product, 0)
@@ -484,7 +486,10 @@ def shop_statistical_table(request):
                 products_list = list(products_set)
                 products_list_sorted = sorted(products_list, key=lambda x: x.number)  # 根据产品的number进行排序
                 # 取得加工费用，价格进行修改,用于修改展示“单价”
-                process_fee = user_pro.freight.price
+                if user_pro.freight:  # user2中是否选择了配送费,相当于加工费
+                    process_fee = user_pro.freight.price
+                else:
+                    process_fee = 0
                 product_process = Product.objects.get(name="加工费")
                 try:  # 确认列表中，是否含有加工费，如果有，修改加工费的金额
                     process_fee_index = products_list_sorted.index(product_process)
@@ -702,25 +707,28 @@ def confirm_shipment(request):
 #  确认是否付款页面
 @login_required
 def confirm_paid(request, profile_id=None):
+    # print(profile_id)
     if request.user.username == 'won' or request.user.username == 'admin':  # 判断是否是管理员
         if request.method == 'POST':  # 点击确定时
             paid_orders_id_list = request.POST.getlist('paid_orders')  # checkout 收到的数据 <class 'list'> ['982', '981']
             print('checkout 收到的数据', type(paid_orders_id_list), paid_orders_id_list)
-            # for paid_order_id in paid_orders_id_list:
-            #     if paid_order_id.isdigit():    # 确认全是数字
-            #         paid_order = Order.objects.get(id=int(paid_order_id))  # 取得订单
-            #         paid_order.paid = True      # 设置为True
-            #         paid_order.save()
-            url = reverse('manager:confirm_paid')
+            for paid_order_id in paid_orders_id_list:
+                if paid_order_id.isdigit():    # 确认全是数字
+                    paid_order = Order.objects.get(id=int(paid_order_id))  # 取得订单
+                    paid_order.paid = True      # 设置为True
+                    paid_order.save()
+            url = reverse('manager:confirm_paid_get')
             return redirect(url)
         else:
             d1 = Department.objects.get(id=1)  # 金华区域
             d2 = Department.objects.get(id=2)  # 其它区域
             users_profile = Profile.objects.filter(Q(department=d1) | Q(department=d2))  # 两个区域的用户
             # 取得用户已发送未支付的订单
+            # print(profile_id)
             if profile_id:
                 user_profile = Profile.objects.get(id=profile_id)
                 orders_send_no_pay = Order.objects.filter(user=user_profile, paid=False, send=True)
+                orders_send_no_pay = sorted(orders_send_no_pay, key=lambda x: x.created)
             else:
                 user_profile = None
                 orders_send_no_pay = None

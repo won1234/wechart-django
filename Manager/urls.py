@@ -10,5 +10,6 @@ urlpatterns = [
     path('shop_shopping', views.shop_shopping, name='shop_shopping'),
     path('product_sales', views.product_sales, name='product_sales'),
     path('confirm_shipment', views.confirm_shipment, name='confirm_shipment'),
-    path('confirm_paid/<int:id>/', views.confirm_paid, name='confirm_paid'),
+    path('confirm_paid', views.confirm_paid, name='confirm_paid_get'),
+    path('confirm_paid/<int:profile_id>/', views.confirm_paid, name='confirm_paid'),
 ]

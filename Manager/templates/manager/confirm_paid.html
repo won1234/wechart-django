@@ -1,0 +1,27 @@
+{% extends "manager/base.html" %}
+
+{% block title %}
+是否付款
+{% endblock %}
+{% block content %}
+    <div id="sidebar">
+        <h3>用户</h3>
+        <ul>
+        {% for user_p in users_profile %}
+            <li {% if user_p == user_profile %}class="selected"{% endif %}>
+            <!--                某个品类的url-->
+                <a href="{{ user_p.get_send_no_pay_url }}">{{ user_p }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div id="main" class="product-list">
+        <form action="{% url 'manager:confirm_paid_get' %}" method="POST">
+            {% csrf_token %}
+            {% for order_send_no_pay in orders_send_no_pay %}
+            <input class="confirm_shipment" type="checkbox" name="paid_orders" value={{ order_send_no_pay.id }} >{{ order_send_no_pay.created|date:"Y-m-d" }} 金额：{{ order_send_no_pay.get_total_cost }}<br>
+             {% endfor %}
+            <input type="submit" value="已付款">
+        </form>
+    </div>
+{% endblock %}

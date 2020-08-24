@@ -35,11 +35,14 @@ class SelectOrdersForm(forms.Form):
         coerce=int)
     send = forms.TypedChoiceField(choices=((0, '全部'), (1, '已发货'), (2, '未发货')), label='是否发货', coerce=int)  # 是否发货
     paid = forms.TypedChoiceField(choices=((0, '全部'), (1, '已支付'), (2, '未支付')), label='是否支付', coerce=int)  # 是否支付
+    # created_start = forms.DateField(required=False, label='开始日期',
+    #                                 widget=forms.SelectDateWidget(empty_label=("年", "月", "日"))
+    #                                 )  # 下单日期
     created_start = forms.DateField(required=False, label='开始日期',
-                                    widget=forms.SelectDateWidget(empty_label=("年", "月", "日"))
+                                    widget=forms.SelectDateWidget(years=(2019, 2020, 2021), empty_label=("年", "月", "日"))
                                     )  # 下单日期
     created_end = forms.DateField(required=False, label='结束日期',
-                                  widget=forms.SelectDateWidget(empty_label=("年", "月", "日"))
+                                  widget=forms.SelectDateWidget(years=(2019, 2020, 2021), empty_label=("年", "月", "日"))
                                   )  # 下单日期
     export_csv = forms.BooleanField(required=True, initial='off', widget=forms.HiddenInput(), label='导出cvs')
 
