@@ -183,7 +183,7 @@ def admin_create_order(request):
                                                  price=product.price,
                                                  quantity=quantity)
                     order_add_freight(order)   # 添加加工费
-                    order_created.delay(user_profile.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
+                    # order_created.delay(user_profile.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
                     # form = AdminCreateOrder()  # 创建成功则清空内容
                     # return render(request, 'orders/order/admin_create_order.html', {'form': form, 'error': str(order) + '下单成功'})
                     url = reverse('orders:admin_create_order')
@@ -191,7 +191,6 @@ def admin_create_order(request):
         else:
             form = AdminCreateOrder()  # 当为一个GET时，返回一个空Form
         return render(request, 'orders/order/admin_create_order.html', {'form': form})
-
 
 # 快速提交订单，展示用户的上次订单，可以直接修改数量，并提交（有提交权限）。
 @login_required
@@ -262,7 +261,7 @@ def last_order(request):
                                          price=product.price,
                                          quantity=int(product_quantity))
             order_add_freight(order)  # 添加加工费
-            order_created.delay(user_pro.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
+            # order_created.delay(user_pro.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
             return redirect(reverse('orders:order_created', kwargs={'order_id': order.id}))
 
     return render(request, 'orders/order/last_order.html',
