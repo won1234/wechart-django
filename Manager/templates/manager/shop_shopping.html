@@ -20,7 +20,7 @@
             </tr>
             {% for user in users_sorted_list %}
             <tr>
-                <th>{{ user }}</th>
+                <th {% if user not in users_today_set %}style="color: #FF0000"{% endif %}>{{ user }}</th>
                 {% for date in date_sorted_list %}
                 {% if date in users_shopping_dic|get_value:user %}
                 <td style="background-color: #00ff00">1</td>
@@ -32,7 +32,7 @@
                 {% if user in users_today_set %}
                 <td >1</td>
                 {% else %}
-                <td {% if user in users_strong_set %}style="background-color: #0000ff"{% endif %}>0</td>
+                <td {% if user in users_strong_set %}style="background-color: #0000ff; color: #FF0000"{% else %}style="color: #FF0000" {% endif %}>0</td>
                 {% endif %}
             </tr>
             {% endfor %}
