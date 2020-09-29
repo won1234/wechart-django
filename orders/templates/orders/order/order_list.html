@@ -5,14 +5,14 @@
 {% endblock %}
 
 {% block content %}
-{% if nologindate %}
-<h1 style="color:red;">您{{ nologindate }}号之前有未支付订单，禁止登录。</h1>
-{% endif %}
-{% if no_pay_dic.no_pay_total %}
-<h1 style="color:red;">“已发货，未支付” 订单号：{{ no_pay_dic.no_pay_order_id }}总金额：￥{{ no_pay_dic.no_pay_total }}</h1>
-<a href="{% url 'orders:order_send_no_pay' %}" style="font-size:20px;font-weight:bold;text-decoration: underline;">已发货，未支付订单报表</a><br><br>
-<strong>已经支付的订单，24小时后数据会更新。如未更新，请及时联系管理员，以免影响后续商品的采购！</strong>
-{% endif %}
+<!--{% if nologindate %}-->
+<!--<h1 style="color:red;">您{{ nologindate }}号之前有未支付订单，禁止登录。</h1>-->
+<!--{% endif %}-->
+<!--{% if no_pay_dic.no_pay_total %}-->
+<!--<h1 style="color:red;">“已发货，未支付” 订单号：{{ no_pay_dic.no_pay_order_id }}总金额：￥{{ no_pay_dic.no_pay_total }}</h1>-->
+<!--<a href="{% url 'orders:order_send_no_pay' %}" style="font-size:20px;font-weight:bold;text-decoration: underline;">已发货，未支付订单报表</a><br><br>-->
+<!--<strong>已经支付的订单，24小时后数据会更新。如未更新，请及时联系管理员，以免影响后续商品的采购！</strong>-->
+<!--{% endif %}-->
 <div>
     <h4>订单信息</h4>
     <ul>
