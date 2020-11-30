@@ -20,7 +20,23 @@ def order_add_freight(order):
         price = 0
     else:
         price = freight.price       # 加工费价格
-        print(price)
+        # print(price)
+    OrderItem.objects.create(order=order,
+                             product=product,
+                             price=price,
+                             quantity=1)
+
+
+# 订单添加运费item，id=32
+def order_add_postage(order):
+    # 取得运费product
+    product = Product.objects.get(id=32)
+    postage = order.user.postage
+    if not postage:   # 为空时
+        price = 0
+    else:
+        price = postage.price       # 运费价格
+        # print(price)
     OrderItem.objects.create(order=order,
                              product=product,
                              price=price,
@@ -47,7 +63,9 @@ def order_create(request):
                                      product=item['product'],
                                      price=item['price'],
                                      quantity=item['quantity'])
-        order_add_freight(order)   # 添加运费
+        order_add_freight(order)   # 添加加工费
+        order_add_postage(order)   # 添加运费
+
 
         # 清空购物车
         cart.clear()
@@ -183,6 +201,8 @@ def admin_create_order(request):
                                                  price=product.price,
                                                  quantity=quantity)
                     order_add_freight(order)   # 添加加工费
+                    order_add_postage(order)  # 添加运费
+
                     # order_created.delay(user_profile.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
                     # form = AdminCreateOrder()  # 创建成功则清空内容
                     # return render(request, 'orders/order/admin_create_order.html', {'form': form, 'error': str(order) + '下单成功'})
@@ -261,6 +281,7 @@ def last_order(request):
                                          price=product.price,
                                          quantity=int(product_quantity))
             order_add_freight(order)  # 添加加工费
+            order_add_postage(order)  # 添加运费
             # order_created.delay(user_pro.id, order.id)  # 启动微信发送订单信息的异步任务,调用任务的 delay() 方法并异步地执行它。
             return redirect(reverse('orders:order_created', kwargs={'order_id': order.id}))
 

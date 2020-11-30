@@ -54,8 +54,20 @@ class Department(models.Model):
         return str(self.name)
 
 
-# 运费
+# 加工费
 class Freight(models.Model):
+    name = models.CharField(max_length=25, verbose_name="加工费")
+    price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='单价')  # 价格
+
+    class Meta:
+        verbose_name_plural = '加工费'
+
+    def __str__(self):
+        return str(self.name)
+
+
+# 运费
+class Postage(models.Model):
     name = models.CharField(max_length=25, verbose_name="运费")
     price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='单价')  # 价格
 
@@ -83,6 +95,10 @@ class Profile(models.Model):
                                    verbose_name='部门')
     freight = models.ForeignKey(Freight, null=True, blank=True, on_delete=models.SET_NULL,
                                 related_name='freight',
+                                verbose_name='加工费')
+
+    postage = models.ForeignKey(Postage, null=True, blank=True, on_delete=models.SET_NULL,
+                                related_name='postage',
                                 verbose_name='运费')
 
     class Meta:
