@@ -431,6 +431,44 @@ def orders_today(request):
                    'users_products_dic': users_products_dic, 'order_by': order_by})
 
 
+# 今日订单 order by mobile number 展示当天的数据，每样东西总计，有哪些订单，哪些东西；
+@login_required
+def orders_today_order_by_mobile(request):
+    today_datetime = datetime.today()
+    today_date = today_datetime.strftime("%Y-%m-%d")
+    # 传入条件，创建查询数据库的实例
+    orders_sql = SqlFilter(created_start=today_date)
+    # 查询数据，取得的是个列表
+    orders_items_list = orders_sql.orders_items()
+    # 订单统计
+    products_total = orders_sql.products_total()  # {product:{'total': , 'num': , 'details': ,'cost':,},....}
+    # 根据产品序号对字典进行排序，返回一个列表
+    products_total_list = sorted(products_total.items(), key=lambda x: x[0].number)
+    users_products_dic = {}  # {user:{product1:2,product2:2,..},..}
+    users_set = set()
+    # user_orders_total 返回每个用户的统计字典{user: {'orders':[], 'products_set'{},'orders_num': , 'cost': },...}
+    # 'orders':[(order, order_items),....]
+    users_orders_dic = orders_sql.user_orders_total()
+    for user, user_order_dic in users_orders_dic.items():
+        users_set.add(user)
+        user_orders_list = user_order_dic['orders']
+        products_dic = {}  # {product1:2,product2:2,..}
+        for order, order_items in user_orders_list:
+            for order_item in order_items:
+                product = order_item.product
+                quantity = order_item.quantity
+                product_quantity = products_dic.get(product, 0)
+                products_dic[product] = product_quantity + quantity  # 取得的加上原来的
+        users_products_dic[user] = products_dic
+    users_sorted_list = sorted(list(users_set), key=lambda x: int(x.mobile) if x.mobile else 999)
+    # print(users_sorted_list)
+    order_by = range(len(users_sorted_list))  # 序号
+    return render(request, 'manager/orders_today_order_by_mobile.html',
+                  {'orders_items_list': orders_items_list, 'today_datetime': today_datetime,
+                   'products_total': products_total_list, 'users_sorted_list': users_sorted_list,
+                   'users_products_dic': users_products_dic, 'order_by': order_by})
+
+
 # 展示一段时间，表和折线图。店铺和全部的统计。不选时间，默认为最近15天。
 @login_required
 def shop_statistical_table(request):

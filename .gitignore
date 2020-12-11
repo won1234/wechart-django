@@ -20,3 +20,5 @@ deploy_key_rsa
 media
 *.sqlite3
 /myproject/settings.py
+/login/migrations/*.py
+/mall/migrations/*.py

@@ -8,7 +8,7 @@ from .models import Profile, WechatTag, Group2, NoPayDate, Department, Freight, 
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'user_name_p', 'address', 'department', 'freight', 'postage', 'price_group', 'mobile', 'wechat_name']
     search_fields = ('user__username', 'user__first_name')
-    list_filter = ['department']
+    list_filter = ['department', 'mobile']
 
 
 admin.site.register(Profile, ProfileAdmin)
